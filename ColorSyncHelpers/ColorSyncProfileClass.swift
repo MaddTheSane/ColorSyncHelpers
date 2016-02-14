@@ -60,7 +60,7 @@ public class CSProfile: CustomStringConvertible {
 			self.init(internalPtr: csVal)
 		} else {
 			guard let errStuff = errVal?.takeUnretainedValue() else {
-				fatalError("Could not unwrap error")
+				throw CSErrors.UnwrappingError
 			}
 			throw errStuff
 		}
@@ -73,7 +73,7 @@ public class CSProfile: CustomStringConvertible {
 			self.init(internalPtr: csVal)
 		} else {
 			guard let errStuff = errVal?.takeUnretainedValue() else {
-				fatalError("Could not unwrap error")
+				throw CSErrors.UnwrappingError
 			}
 			throw errStuff
 		}
@@ -177,8 +177,7 @@ public class CSProfile: CustomStringConvertible {
 		
 		if aRet == 0.0 {
 			guard let errStuff = errVal?.takeUnretainedValue() else {
-				//fatalError("Could not unwrap error")
-				return 0
+				throw CSErrors.UnwrappingError
 			}
 			throw errStuff
 		}
@@ -199,7 +198,7 @@ public class CSProfile: CustomStringConvertible {
 		var errVal: Unmanaged<CFError>?
 		guard let aDat = ColorSyncProfileCopyData(profile, &errVal)?.takeRetainedValue() else {
 			guard let errStuff = errVal?.takeUnretainedValue() else {
-				fatalError("Could not unwrap error")
+				throw CSErrors.UnwrappingError
 			}
 			throw errStuff
 		}
@@ -230,7 +229,7 @@ public class CSProfile: CustomStringConvertible {
 		var errVal: Unmanaged<CFError>?
 		if !ColorSyncProfileInstall(profile, domain, subpath, &errVal) {
 			guard let errStuff = errVal?.takeUnretainedValue() else {
-				fatalError("Could not unwrap error")
+				throw CSErrors.UnwrappingError
 			}
 			throw errStuff
 		}
@@ -244,7 +243,7 @@ public class CSProfile: CustomStringConvertible {
 		var errVal: Unmanaged<CFError>?
 		if !ColorSyncProfileUninstall(profile, &errVal) {
 			guard let errStuff = errVal?.takeUnretainedValue() else {
-				fatalError("Could not unwrap error")
+				throw CSErrors.UnwrappingError
 			}
 			throw errStuff
 		}
@@ -277,8 +276,7 @@ public func estimateGamma(displayID displayID: Int32) throws -> Float {
 	
 	guard aRet != 0.0 else {
 		guard let errStuff = errVal?.takeUnretainedValue() else {
-			//fatalError("Could not unwrap error")
-			return 0
+			throw CSErrors.UnwrappingError
 		}
 		throw errStuff
 	}
