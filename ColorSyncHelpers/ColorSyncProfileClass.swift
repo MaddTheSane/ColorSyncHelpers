@@ -21,8 +21,6 @@ private func profileIterate(profileInfo: NSDictionary!, userInfo: UnsafeMutableP
 	return true
 }
 
-
-
 //TODO: add dictionary generater
 public class CSProfile: CustomStringConvertible {
 	public private(set) var profile: ColorSyncProfile
@@ -55,7 +53,7 @@ public class CSProfile: CustomStringConvertible {
 		profile = internalPtr
 	}
 	
-	/// - parameter  data: profile data
+	/// - parameter data: profile data
 	public convenience init(data: NSData) throws {
 		var errVal: Unmanaged<CFError>?
 		if let csVal = ColorSyncProfileCreate(data, &errVal)?.takeRetainedValue() {
@@ -138,7 +136,7 @@ public class CSProfile: CustomStringConvertible {
 		return CSMutableProfile(internalPtr: profile)
 	}
 	
-	/// the signature of the tag
+	/// The data associated with the signature.
 	public subscript (tag: String) -> NSData? {
 		get {
 			if let data = ColorSyncProfileCopyTag(profile, tag)?.takeRetainedValue() {
@@ -315,7 +313,7 @@ public final class CSMutableProfile: CSProfile {
 		}
 	}
 
-	/// the signature of the tag
+	/// The data associated with the signature.
 	override public subscript (tag: String) -> NSData? {
 		get {
 			return super[tag]
