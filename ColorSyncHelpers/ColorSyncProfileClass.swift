@@ -111,7 +111,7 @@ public class CSProfile: CustomStringConvertible {
 	/// - parameter displayID: system-wide unique display ID (defined by IOKIt); pass 0 for main display.
 	///
 	/// - returns: ColorSyncProfileRef or `nil` in case of failure
-	public convenience init?(displayID: UInt32 = 0) {
+	public convenience init?(displayID: UInt32) {
 		guard let aRet = ColorSyncProfileCreateWithDisplayID(displayID)?.takeRetainedValue() else {
 			return nil
 		}
@@ -146,12 +146,13 @@ public class CSProfile: CustomStringConvertible {
 		}
 	}
 	
+	/// Tests if the profiles has a specified tag.
 	///
 	/// - parameter signature: signature of the tag to be searched for
 	///
-	/// - returns: `true` if tag exists or `false` if it does not.
+	/// - returns: `true` if tag exists, or `false` if it does not.
 	public final func containsTag(signature: String) -> Bool {
-		return ColorSyncProfileContainsTag(profile, signature as NSString)
+		return ColorSyncProfileContainsTag(profile, signature)
 	}
 	
 	/// Returns MD5 digest for the profile calculated as defined by
@@ -311,6 +312,10 @@ public final class CSMutableProfile: CSProfile {
 		}
 	}
 
+	public func removeTag(named: String) {
+		ColorSyncProfileRemoveTag(mutPtr, named)
+	}
+	
 	/// The data associated with the signature.
 	override public subscript (tag: String) -> NSData? {
 		get {
@@ -318,9 +323,9 @@ public final class CSMutableProfile: CSProfile {
 		}
 		set {
 			if let data = newValue {
-				ColorSyncProfileSetTag(mutPtr, tag as NSString, data)
+				ColorSyncProfileSetTag(mutPtr, tag, data)
 			} else {
-				ColorSyncProfileRemoveTag(mutPtr, tag as NSString)
+				removeTag(tag)
 			}
 		}
 	}
