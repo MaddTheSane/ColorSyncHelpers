@@ -17,7 +17,7 @@ private func cmmIterator(cmm: ColorSyncCMM!, userInfo: UnsafeMutablePointer<Void
 	return true
 }
 
-public final class CSCMM: CustomStringConvertible {
+public final class CSCMM: CustomStringConvertible, CustomDebugStringConvertible {
 	var cmmInt: ColorSyncCMMRef?
 	
 	public static func installedCMMs() -> [CSCMM] {
@@ -59,5 +59,9 @@ public final class CSCMM: CustomStringConvertible {
 	
 	public var description: String {
 		return "\(identifier), \"\(localizedName)\""
+	}
+	
+	public var debugDescription: String {
+		return CFCopyDescription(cmmInt) as String
 	}
 }

@@ -9,7 +9,7 @@
 import Foundation
 import ApplicationServices
 
-public class CSTransform {
+public class CSTransform: CustomDebugStringConvertible {
 	public struct DataLayout: OptionSetType {
 		public let rawValue: UInt32
 		public init(rawValue: UInt32) {
@@ -49,10 +49,12 @@ public class CSTransform {
 		public static let ByteOrder32Little = DataLayout(rawValue: 2 << 12)
 		public static let ByteOrder16Big = DataLayout(rawValue: 3 << 12)
 		public static let ByteOrder32Big = DataLayout(rawValue: 4 << 12)
-	};
-	
-	
-	//typedef uint32_t DataLayout;
+	}
 
 	var cstint: ColorSyncTransformRef?
+	
+	public var debugDescription: String {
+		return CFCopyDescription(cstint) as String
+	}
+
 }

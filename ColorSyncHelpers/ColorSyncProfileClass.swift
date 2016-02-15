@@ -22,7 +22,7 @@ private func profileIterate(profileInfo: NSDictionary!, userInfo: UnsafeMutableP
 }
 
 //TODO: add dictionary generater
-public class CSProfile: CustomStringConvertible {
+public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	public private(set) var profile: ColorSyncProfile
 	
 	public static func allProfiles() throws -> [CSProfile] {
@@ -187,6 +187,10 @@ public class CSProfile: CustomStringConvertible {
 	
 	final public var description: String {
 		return ColorSyncProfileCopyDescriptionString(profile).takeRetainedValue() as String
+	}
+	
+	public var debugDescription: String {
+		return CFCopyDescription(profile) as String
 	}
 	
 	/// Array of signatures of tags in the profile
