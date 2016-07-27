@@ -153,7 +153,6 @@ class ColorSyncHelpersTests: XCTestCase {
 			return
 		}
 		XCTAssert(false, "CSProfile should have failed")
-
 	}
 	
 	func testValidData() {
@@ -199,5 +198,18 @@ class ColorSyncHelpersTests: XCTestCase {
 		} catch {
 			XCTAssert(false, "CSMutableProfile failed, \(error)")
 		}
+	}
+	
+	func testMD5() {
+		let data = NSData(bytes: validICCData, length: validICCData.count)
+
+		guard let profile = try? CSProfile(data: data) else {
+			XCTAssert(false, "CSProfile failed")
+			return
+		}
+
+		let md5Data = profile.MD5
+		
+		XCTAssertNotNil(md5Data)
 	}
 }
