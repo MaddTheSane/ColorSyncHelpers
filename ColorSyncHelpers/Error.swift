@@ -8,8 +8,8 @@
 
 import Foundation
 
-public enum CSErrors: Int, ErrorType {
-	case UnwrappingError = -1
+public enum CSErrors: Int, ErrorProtocol {
+	case unwrappingError = -1
 	
 	public var _code: Int {
 		return self.rawValue

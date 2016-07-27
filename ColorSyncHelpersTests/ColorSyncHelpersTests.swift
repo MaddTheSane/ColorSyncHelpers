@@ -147,7 +147,7 @@ class ColorSyncHelpersTests: XCTestCase {
 			0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 			0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 			0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00]
-		let data = NSData(bytes: byteArray, length: byteArray.count)
+		let data = Data(bytes: UnsafePointer<UInt8>(byteArray), count: byteArray.count)
 		
 		do {
 			let profile = try CSProfile(data: data)
@@ -161,7 +161,7 @@ class ColorSyncHelpersTests: XCTestCase {
 	}
 	
 	func testValidData() {
-		let data = NSData(bytes: validICCData, length: validICCData.count)
+		let data = Data(bytes: UnsafePointer<UInt8>(validICCData), count: validICCData.count)
 		
 		do {
 			let profile = try CSProfile(data: data)
@@ -172,17 +172,17 @@ class ColorSyncHelpersTests: XCTestCase {
 	}
 	
 	func testMakingItMutable() {
-		let data = NSData(bytes: validICCData, length: validICCData.count)
+		let data = Data(bytes: UnsafePointer<UInt8>(validICCData), count: validICCData.count)
 		
 		do {
 			let profile = try CSProfile(data: data)
 			print(profile.profile)
 			if let copy = profile[kColorSyncSigCopyrightTag.takeUnretainedValue() as String] {
-				print(String(data: copy, encoding: NSUTF8StringEncoding))
+				print(String(data: copy, encoding: String.Encoding.utf8))
 			}
 			
 			let mutProfile = profile.mutableCopy()
-			mutProfile[kColorSyncSigCopyrightTag.takeUnretainedValue() as String] = "text\0\0\0\0Testing this…\0".dataUsingEncoding(NSUTF8StringEncoding)
+			mutProfile[kColorSyncSigCopyrightTag.takeUnretainedValue() as String] = "text\0\0\0\0Testing this…\0".data(using: String.Encoding.utf8)
 			print(mutProfile.profile)
 			mutProfile[kColorSyncSigCopyrightTag.takeUnretainedValue() as String] = nil
 			print(mutProfile.profile)
@@ -192,7 +192,7 @@ class ColorSyncHelpersTests: XCTestCase {
 	}
 	
 	func testRawMutable() {
-		let data = NSData(bytes: validICCData, length: validICCData.count)
+		let data = Data(bytes: UnsafePointer<UInt8>(validICCData), count: validICCData.count)
 
 		let aMut = CSMutableProfile()
 		print(aMut.profile)
@@ -208,7 +208,7 @@ class ColorSyncHelpersTests: XCTestCase {
 	}
 	
 	func testMD5() {
-		let data = NSData(bytes: validICCData, length: validICCData.count)
+		let data = Data(bytes: UnsafePointer<UInt8>(validICCData), count: validICCData.count)
 
 		guard let profile = try? CSProfile(data: data) else {
 			XCTAssert(false, "CSProfile failed")

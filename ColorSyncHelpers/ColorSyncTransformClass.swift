@@ -14,7 +14,7 @@ import ApplicationServices
 /// Most keys are in ApplicationServices/ColorSync/ColorSyncTransform. 
 /// Note that you may have to unwrap them!
 public final class CSTransform: CustomDebugStringConvertible {
-	public struct DataLayout: OptionSetType {
+	public struct DataLayout: OptionSet {
 		public let rawValue: UInt32
 		public init(rawValue: UInt32) {
 			self.rawValue = rawValue
@@ -22,26 +22,26 @@ public final class CSTransform: CustomDebugStringConvertible {
 		
 		public enum AlphaInfo: UInt32 {
 			/// For example, RGB.
-			case None = 0
+			case none = 0
 			/// For example, premultiplied RGBA
-			case PremultipliedLast
+			case premultipliedLast
 			/// For example, premultiplied ARGB
-			case PremultipliedFirst
+			case premultipliedFirst
 			/// For example, non-premultiplied RGBA
-			case Last
+			case last
 			/// For example, non-premultiplied ARGB
-			case First
+			case first
 			/// For example, RBGX.
-			case NoneSkipLast
+			case noneSkipLast
 			///For example, XRGB.
-			case NoneSkipFirst
+			case noneSkipFirst
 		}
 		
 		public var alphaInfo: AlphaInfo {
 			get {
-				let newVal = self.intersect(.AlphaInfoMask)
+				let newVal = self.intersection(.AlphaInfoMask)
 				let rawVal = newVal.rawValue
-				return AlphaInfo(rawValue: rawVal) ?? .None
+				return AlphaInfo(rawValue: rawVal) ?? .none
 			}
 			set {
 				remove(.AlphaInfoMask)
@@ -59,7 +59,7 @@ public final class CSTransform: CustomDebugStringConvertible {
 		public static var ByteOrder32Big: DataLayout { return DataLayout(rawValue: 4 << 12) }
 	}
 
-	private var cstint: ColorSyncTransformRef?
+	private var cstint: ColorSyncTransform?
 	
 	public var debugDescription: String {
 		return CFCopyDescription(cstint) as String
@@ -125,7 +125,7 @@ public final class CSTransform: CustomDebugStringConvertible {
 	/// - parameter srcBytesPerRow: number of bytes in the row of data
 	/// - parameter options: additional options. Default is `nil`.
 	/// - returns: `true` if conversion was successful or `false` otherwise.
-	public func transform(width width: Int, height: Int, dst: UnsafeMutablePointer<Void>, dstDepth: ColorSyncDataDepth, dstLayout: DataLayout, dstBytesPerRow: Int, src: UnsafePointer<Void>, srcDepth: ColorSyncDataDepth, srcLayout: DataLayout, srcBytesPerRow: Int, options: [String: AnyObject]? = nil) -> Bool {
+	public func transform(width: Int, height: Int, dst: UnsafeMutablePointer<Void>, dstDepth: ColorSyncDataDepth, dstLayout: DataLayout, dstBytesPerRow: Int, src: UnsafePointer<Void>, srcDepth: ColorSyncDataDepth, srcLayout: DataLayout, srcBytesPerRow: Int, options: [String: AnyObject]? = nil) -> Bool {
 		return ColorSyncTransformConvert(cstint, width, height, dst, dstDepth, dstLayout.rawValue, dstBytesPerRow, src, srcDepth, srcLayout.rawValue, srcBytesPerRow, options)
 	}
 	
@@ -136,7 +136,7 @@ public final class CSTransform: CustomDebugStringConvertible {
 	/// - parameter source: information about the data to be converted.
 	/// - parameter options: additional options. Default is `nil`.
 	/// - returns: `true` if conversion was successful or `false` otherwise.
-	public func transform(width width: Int, height: Int, destination: (data: UnsafeMutablePointer<Void>, depth: ColorSyncDataDepth, layout: DataLayout, bytesPerRow: Int), source: (data: UnsafePointer<Void>, depth: ColorSyncDataDepth, layout: DataLayout, bytesPerRow: Int), options: [String: AnyObject]? = nil) -> Bool {
+	public func transform(width: Int, height: Int, destination: (data: UnsafeMutablePointer<Void>, depth: ColorSyncDataDepth, layout: DataLayout, bytesPerRow: Int), source: (data: UnsafePointer<Void>, depth: ColorSyncDataDepth, layout: DataLayout, bytesPerRow: Int), options: [String: AnyObject]? = nil) -> Bool {
 		
 		return transform(width: width, height: height, dst: destination.data, dstDepth: destination.depth, dstLayout: destination.layout, dstBytesPerRow: destination.bytesPerRow, src: source.data, srcDepth: source.depth, srcLayout: source.layout, srcBytesPerRow: source.bytesPerRow, options: options)
 	}
@@ -148,21 +148,21 @@ public final class CSTransform: CustomDebugStringConvertible {
 	/// - parameter source: information about the data to be converted.
 	/// - parameter options: additional options. Default is `nil`.
 	/// - returns: `true` if conversion was successful or `false` otherwise.
-	public func transform(width width: Int, height: Int, destination: (data: NSMutableData, depth: ColorSyncDataDepth, layout: DataLayout, bytesPerRow: Int), source: (data: NSData, depth: ColorSyncDataDepth, layout: DataLayout, bytesPerRow: Int), options: [String: AnyObject]? = nil) -> Bool {
+	public func transform(width: Int, height: Int, destination: (data: NSMutableData, depth: ColorSyncDataDepth, layout: DataLayout, bytesPerRow: Int), source: (data: Data, depth: ColorSyncDataDepth, layout: DataLayout, bytesPerRow: Int), options: [String: AnyObject]? = nil) -> Bool {
 		
-		return transform(width: width, height: height, dst: destination.data.mutableBytes, dstDepth: destination.depth, dstLayout: destination.layout, dstBytesPerRow: destination.bytesPerRow, src: source.data.bytes, srcDepth: source.depth, srcLayout: source.layout, srcBytesPerRow: source.bytesPerRow, options: options)
+		return transform(width: width, height: height, dst: destination.data.mutableBytes, dstDepth: destination.depth, dstLayout: destination.layout, dstBytesPerRow: destination.bytesPerRow, src: (source.data as NSData).bytes, srcDepth: source.depth, srcLayout: source.layout, srcBytesPerRow: source.bytesPerRow, options: options)
 	}
 	
 	/// gets the property of the specified key
 	/// - parameter key: `CFTypeRef` to be used as a key to identify the property
-	public func getProperty(key key: AnyObject, options: [String: AnyObject]? = nil) -> AnyObject? {
+	public func getProperty(key: AnyObject, options: [String: AnyObject]? = nil) -> AnyObject? {
 		return ColorSyncTransformCopyProperty(cstint, key, options).takeRetainedValue()
 	}
 	
 	/// Sets the property
 	/// - parameter key: `CFTypeRef` to be used as a key to identify the property
 	/// - parameter property: `CFTypeRef` to be set as the property
-	public func setProperty(key key: AnyObject, property: AnyObject) {
+	public func setProperty(key: AnyObject, property: AnyObject) {
 		ColorSyncTransformSetProperty(cstint, key, property)
 	}
 }

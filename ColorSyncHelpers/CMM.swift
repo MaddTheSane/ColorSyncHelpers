@@ -9,16 +9,19 @@
 import Foundation
 import ApplicationServices
 
-private func cmmIterator(cmm: ColorSyncCMM!, userInfo: UnsafeMutablePointer<Void>) -> Bool {
-	let array = Unmanaged<NSMutableArray>.fromOpaque(COpaquePointer(userInfo)).takeUnretainedValue()
+private func cmmIterator(_ cmm: ColorSyncCMM?, userInfo: UnsafeMutablePointer<Void>?) -> Bool {
+	guard let userInfo = userInfo, let cmm = cmm else {
+		return false
+	}
+	let array = Unmanaged<NSMutableArray>.fromOpaque(userInfo).takeUnretainedValue()
 	
-	array.addObject(CSCMM(cmm: cmm))
+	array.add(CSCMM(cmm: cmm))
 	
 	return true
 }
 
 public final class CSCMM: CustomStringConvertible, CustomDebugStringConvertible {
-	var cmmInt: ColorSyncCMMRef?
+	var cmmInt: ColorSyncCMM?
 	
 	public static func installedCMMs() -> [CSCMM] {
 		let cmms = NSMutableArray()
@@ -32,9 +35,9 @@ public final class CSCMM: CustomStringConvertible, CustomDebugStringConvertible 
 		cmmInt = cmm
 	}
 	
-	public convenience init?(bundle: NSBundle) {
+	public convenience init?(bundle: Bundle) {
 		let newBund = CFBundleCreate(kCFAllocatorDefault, bundle.bundleURL)
-		self.init(bundle: newBund)
+		self.init(bundle: newBund!)
 	}
 	
 	public init?(bundle: CFBundle) {
@@ -45,10 +48,10 @@ public final class CSCMM: CustomStringConvertible, CustomDebugStringConvertible 
 	}
 	
 	/// will return `nil` for Apple's built-in CMM
-	public var bundle: NSBundle? {
+	public var bundle: Bundle? {
 		if let cfBundle = ColorSyncCMMGetBundle(cmmInt)?.takeUnretainedValue() {
-			let aURL: NSURL = CFBundleCopyBundleURL(cfBundle)
-			return NSBundle(URL: aURL)!
+			let aURL: URL = CFBundleCopyBundleURL(cfBundle) as URL
+			return Bundle(url: aURL)!
 		}
 		return nil
 	}
