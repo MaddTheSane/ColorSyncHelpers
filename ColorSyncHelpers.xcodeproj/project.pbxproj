@@ -389,6 +389,7 @@
 				5507A9D41C7104AC0060A8AA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		55FD12461C6F12A5009FB22C /* Build configuration list for PBXProject "ColorSyncHelpers" */ = {
 			isa = XCConfigurationList;

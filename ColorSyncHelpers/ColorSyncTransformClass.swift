@@ -9,7 +9,7 @@
 import Foundation
 import ApplicationServices
 
-public class CSTransform: CustomDebugStringConvertible {
+public final class CSTransform: CustomDebugStringConvertible {
 	public struct DataLayout: OptionSetType {
 		public let rawValue: UInt32
 		public init(rawValue: UInt32) {
@@ -33,11 +33,15 @@ public class CSTransform: CustomDebugStringConvertible {
 			case NoneSkipFirst
 		}
 		
-		public var alphaInfo: AlphaInfo? {
+		public var alphaInfo: AlphaInfo {
 			get {
 				let newVal = self.intersect(.AlphaInfoMask)
 				let rawVal = newVal.rawValue
-				return AlphaInfo(rawValue: rawVal)
+				return AlphaInfo(rawValue: rawVal) ?? .None
+			}
+			set {
+				remove(.AlphaInfoMask)
+				insert(DataLayout(rawValue: newValue.rawValue))
 			}
 		}
 		
@@ -57,6 +61,9 @@ public class CSTransform: CustomDebugStringConvertible {
 		return CFCopyDescription(cstint) as String
 	}
 
+	/// Creates a transform class with a transform from `from` to `to`.
+	///
+	/// This is equivalent to using the perceptual rendering intent.
 	public convenience init?(from: CSProfile, to: CSProfile) {
 		let fromArr: [String: AnyObject]
 			= [kColorSyncProfile.takeUnretainedValue() as String: from.profile,
@@ -82,12 +89,12 @@ public class CSTransform: CustomDebugStringConvertible {
 	///               Optional key:
 	///               =============
 	///                      kColorSyncBlackPointCompensation : CFBooleanRef to enable/disable BPC
-	/// - parameter options: dictionary with additional public global options (e.g. preferred CMM, quality,
-	///                       etc... It can also contain custom options that are CMM specific.
-	///
+	/// - parameter options: dictionary with additional public global options 
+	/// (e.g. preferred CMM, quality, etc…) It can also contain custom options that are CMM specific.
 	/// - returns: A valid `CSTransform`, or `nil` in case of failure
 	public init?(profileSequence: [[String:AnyObject]], options: [String:AnyObject]? = nil) {
 		let colorSyncProfKey = kColorSyncProfile.takeUnretainedValue() as String
+		// make sure we don't pass our own CSProfile, but the ColorSyncProfileRef the API expects
 		let filtered = profileSequence.map { (TheDict) -> [String:AnyObject] in
 			var tmpDict: [String:AnyObject] = TheDict
 			if let csProfile = tmpDict[colorSyncProfKey] as? CSProfile {
@@ -101,18 +108,57 @@ public class CSTransform: CustomDebugStringConvertible {
 		cstint = tmpTrans
 	}
 	
-	/// -parameter width: width of the image in pixels
-	/// -parameter height: height of the image in pixels
-	/// -parameter dst: a pointer to the destination where the results will be written.
-	/// -parameter dstDepth: describes the bit depth and type of the destination color components
-	/// -parameter dstFormat: describes the format and byte packing of the destination pixels
-	/// -parameter dstBytesPerRow: number of bytes in the row of data
-	/// -parameter src: a pointer to the data to be converted.
-	/// -parameter srcDepth: describes the bit depth and type of the source color components
-	/// -parameter srcFormat: describes the format and byte packing of the source pixels
-	/// -parameter srcBytesPerRow: number of bytes in the row of data
-	/// -returns: true if conversion was successful or false otherwise
+	/// Transform the data from the source color space to the destination.
+	/// - parameter width: width of the image in pixels
+	/// - parameter height: height of the image in pixels
+	/// - parameter dst: a pointer to the destination where the results will be written.
+	/// - parameter dstDepth: describes the bit depth and type of the destination color components
+	/// - parameter dstFormat: describes the format and byte packing of the destination pixels
+	/// - parameter dstBytesPerRow: number of bytes in the row of data
+	/// - parameter src: a pointer to the data to be converted.
+	/// - parameter srcDepth: describes the bit depth and type of the source color components
+	/// - parameter srcFormat: describes the format and byte packing of the source pixels
+	/// - parameter srcBytesPerRow: number of bytes in the row of data
+	/// - parameter options: additional options. Default is `nil`.
+	/// - returns: `true` if conversion was successful or `false` otherwise.
 	public func transform(width width: Int, height: Int, dst: UnsafeMutablePointer<Void>, dstDepth: ColorSyncDataDepth, dstLayout: DataLayout, dstBytesPerRow: Int, src: UnsafePointer<Void>, srcDepth: ColorSyncDataDepth, srcLayout: DataLayout, srcBytesPerRow: Int, options: [String: AnyObject]? = nil) -> Bool {
 		return ColorSyncTransformConvert(cstint, width, height, dst, dstDepth, dstLayout.rawValue, dstBytesPerRow, src, srcDepth, srcLayout.rawValue, srcBytesPerRow, options)
+	}
+	
+	/// Transform the data from the source color space to the destination.
+	/// - parameter width: width of the image in pixels
+	/// - parameter height: height of the image in pixels
+	/// - parameter destination: information about the destination data, including a pointer to the destination where the results will be written.
+	/// - parameter source: information about the data to be converted.
+	/// - parameter options: additional options. Default is `nil`.
+	/// - returns: `true` if conversion was successful or `false` otherwise.
+	public func transform(width width: Int, height: Int, destination: (data: UnsafeMutablePointer<Void>, depth: ColorSyncDataDepth, layout: DataLayout, bytesPerRow: Int), source: (data: UnsafePointer<Void>, depth: ColorSyncDataDepth, layout: DataLayout, bytesPerRow: Int), options: [String: AnyObject]? = nil) -> Bool {
+		
+		return transform(width: width, height: height, dst: destination.data, dstDepth: destination.depth, dstLayout: destination.layout, dstBytesPerRow: destination.bytesPerRow, src: source.data, srcDepth: source.depth, srcLayout: source.layout, srcBytesPerRow: source.bytesPerRow, options: options)
+	}
+
+	/// Transform the data from the source color space to the destination.
+	/// - parameter width: width of the image in pixels
+	/// - parameter height: height of the image in pixels
+	/// - parameter destination: information about the destination data, including an `NSMutableData` reference to the destination where the results will be written.
+	/// - parameter source: information about the data to be converted.
+	/// - parameter options: additional options. Default is `nil`.
+	/// - returns: `true` if conversion was successful or `false` otherwise.
+	public func transform(width width: Int, height: Int, destination: (data: NSMutableData, depth: ColorSyncDataDepth, layout: DataLayout, bytesPerRow: Int), source: (data: NSData, depth: ColorSyncDataDepth, layout: DataLayout, bytesPerRow: Int), options: [String: AnyObject]? = nil) -> Bool {
+		
+		return transform(width: width, height: height, dst: destination.data.mutableBytes, dstDepth: destination.depth, dstLayout: destination.layout, dstBytesPerRow: destination.bytesPerRow, src: source.data.bytes, srcDepth: source.depth, srcLayout: source.layout, srcBytesPerRow: source.bytesPerRow, options: options)
+	}
+	
+	/// gets the property of the specified key
+	/// - parameter key: `CFTypeRef` to be used as a key to identify the property
+	public func getProperty(key key: AnyObject, options: [String: AnyObject]? = nil) -> AnyObject? {
+		return ColorSyncTransformCopyProperty(cstint, key, options).takeRetainedValue()
+	}
+	
+	/// Sets the property
+	/// - parameter key: `CFTypeRef` to be used as a key to identify the property
+	/// - parameter property: `CFTypeRef` to be set as the property
+	public func setProperty(key key: AnyObject, property: AnyObject) {
+		ColorSyncTransformSetProperty(cstint, key, property)
 	}
 }

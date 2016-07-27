@@ -137,6 +137,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	}
 	
 	/// The data associated with the signature.
+	/// - parameter tag: signature of the tag to be copied
 	public subscript (tag: String) -> NSData? {
 		get {
 			if let data = ColorSyncProfileCopyTag(profile, tag)?.takeRetainedValue() {
@@ -156,8 +157,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	}
 	
 	/// Returns MD5 digest for the profile calculated as defined by
-	/// ICC specification, or "nil"
-	/// in case of failure.
+	/// ICC specification, or `nil` in case of failure.
 	public final var MD5: ColorSyncMD5? {
 		let toRet = ColorSyncProfileGetMD5(profile)
 		var theMD5 = toRet
@@ -299,6 +299,7 @@ public func estimateGamma(displayID displayID: Int32) throws -> Float {
 	return aRet
 }
 
+/// A mutable version of `CSProfile`.
 public final class CSMutableProfile: CSProfile {
 	private var mutPtr: ColorSyncMutableProfile
 	
