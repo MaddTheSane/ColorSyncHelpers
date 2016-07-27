@@ -21,12 +21,39 @@ private func profileIterate(profileInfo: NSDictionary!, userInfo: UnsafeMutableP
 	return true
 }
 
+func sanitizeOptions(options: [String: AnyObject]?) -> [String: AnyObject]? {
+	guard var options = options else {
+		return nil
+	}
+	
+	if let cmm = options[kColorSyncPreferredCMM.takeUnretainedValue() as String] as? CSCMM {
+		options[kColorSyncPreferredCMM.takeUnretainedValue() as String] = cmm.cmmInt
+	}
+	
+	return options
+}
+
+/// Make sure we don't pass our own `CSProfile`, but the `ColorSyncProfileRef` the API expects.
+func sanitizeProfileInfo(profileSequence: [[String:AnyObject]]) -> [[String:AnyObject]] {
+	let colorSyncProfKey = kColorSyncProfile.takeUnretainedValue() as String
+	// make sure we don't pass our own CSProfile, but the ColorSyncProfileRef the API expects
+	let filtered = profileSequence.map { (TheDict) -> [String:AnyObject] in
+		var tmpDict: [String:AnyObject] = TheDict
+		if let csProfile = tmpDict[colorSyncProfKey] as? CSProfile {
+			tmpDict[colorSyncProfKey] = csProfile.profile
+		}
+		return tmpDict
+	}
+	return filtered
+}
+
 //TODO: add dictionary generater
 /// A class that references a ColorSync profile.
 public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	/// Internal ColorSync profile reference that the class wraps around.
 	public private(set) var profile: ColorSyncProfile
 	
+	/// Returns all of the installed profiles.
 	public static func allProfiles() throws -> [CSProfile] {
 		let profs = NSMutableArray()
 		var errVal: Unmanaged<CFError>?
@@ -55,6 +82,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 		profile = internalPtr
 	}
 	
+	/// Creates a profile from ICC data.
 	/// - parameter data: profile data
 	public convenience init(data: NSData) throws {
 		var errVal: Unmanaged<CFError>?
@@ -81,6 +109,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 		}
 	}
 	
+	/// Creates a profile from a predefined name.
 	/// - parameter name: predefined profile name
 	public convenience init?(named name: String) {
 		guard let retVal = ColorSyncProfileCreateWithName(name)?.takeRetainedValue() else {
@@ -95,17 +124,17 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	///
 	///               Required keys:
 	///               ==============
-	///                      kColorSyncProfile           : ColorSyncProfileRef
+	///                      kColorSyncProfile           : ColorSyncProfileRef or CSProfile
 	///                      kColorSyncRenderingIntent   : CFStringRef defining rendering intent
 	///                      kColorSyncTransformTag      : CFStringRef defining which tags to use
 	///               Optional key:
 	///               =============
 	///                    kColorSyncBlackPointCompensation : CFBooleanRef to enable/disable BPC
 	///
-	/// - parameter options: dictionary with additional public global options (e.g. preferred CMM, quality,
-	/// etc... It can also contain custom options that are CMM specific.
+	/// - parameter options: dictionary with additional public global options (e.g. 
+	/// preferred CMM, quality, etc…) It can also contain custom options that are CMM specific.
 	public convenience init?(profileInfo: [[String: AnyObject]], options: [String: AnyObject]? = nil) {
-		guard let prof = ColorSyncProfileCreateLink(profileInfo, options)?.takeRetainedValue() else {
+		guard let prof = ColorSyncProfileCreateLink(sanitizeProfileInfo(profileInfo), sanitizeOptions(options))?.takeRetainedValue() else {
 			return nil
 		}
 		self.init(internalPtr: prof)
@@ -187,6 +216,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 		return ColorSyncProfileCopyHeader(profile)?.takeRetainedValue()
 	}
 	
+	/// Estimates the gamma of the profile.
 	public final func estimateGamma() throws -> Float {
 		var errVal: Unmanaged<CFError>?
 		let aRet = ColorSyncProfileEstimateGamma(profile, &errVal)
@@ -319,7 +349,7 @@ public final class CSMutableProfile: CSProfile {
 		super.init(internalPtr: mutPtr)
 	}
 	
-	/// NSData containing the header data in host endianess
+	/// `NSData` containing the header data in host endianess
 	override public var header: NSData? {
 		get {
 			return super.header
