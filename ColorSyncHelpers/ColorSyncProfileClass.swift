@@ -101,7 +101,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	///
 	/// - parameter options: dictionary with additional public global options (e.g. preferred CMM, quality,
 	/// etc... It can also contain custom options that are CMM specific.
-	public convenience init?(profileInfo: [[String: AnyObject]], options: [String: AnyObject]) {
+	public convenience init?(profileInfo: [[String: AnyObject]], options: [String: AnyObject]? = nil) {
 		guard let prof = ColorSyncProfileCreateLink(profileInfo, options)?.takeRetainedValue() else {
 			return nil
 		}
@@ -156,10 +156,21 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	}
 	
 	/// Returns MD5 digest for the profile calculated as defined by
-	/// ICC specification, or a "zero" signature (filled with zeros)
+	/// ICC specification, or "nil"
 	/// in case of failure.
-	public final var MD5: ColorSyncMD5 {
-		return ColorSyncProfileGetMD5(profile)
+	public final var MD5: ColorSyncMD5? {
+		let toRet = ColorSyncProfileGetMD5(profile)
+		var theMD5 = toRet
+		let toCheck = withUnsafePointer(&theMD5.digest) { (TheT) -> UnsafeBufferPointer<UInt8> in
+			let newErr = UnsafePointer<UInt8>(TheT)
+			return UnsafeBufferPointer<UInt8>(start: newErr, count: 16)
+		}
+		for i in toCheck {
+			if i != 0 {
+				return toRet
+			}
+		}
+		return nil
 	}
 	
 	/// The URL of the profile, or `nil` on error.
@@ -167,7 +178,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 		return ColorSyncProfileGetURL(profile, nil)?.takeUnretainedValue()
 	}
 	
-	/// NSData containing the header data in host endianess
+	/// `NSData` containing the header data in host endianess.
 	public var header: NSData? {
 		return ColorSyncProfileCopyHeader(profile)?.takeRetainedValue()
 	}

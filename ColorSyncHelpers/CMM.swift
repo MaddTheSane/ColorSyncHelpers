@@ -45,8 +45,12 @@ public final class CSCMM: CustomStringConvertible, CustomDebugStringConvertible 
 	}
 	
 	/// will return `nil` for Apple's built-in CMM
-	public var bundle: CFBundle? {
-		return ColorSyncCMMGetBundle(cmmInt)?.takeUnretainedValue()
+	public var bundle: NSBundle? {
+		if let cfBundle = ColorSyncCMMGetBundle(cmmInt)?.takeUnretainedValue() {
+			let aURL: NSURL = CFBundleCopyBundleURL(cfBundle)
+			return NSBundle(URL: aURL)!
+		}
+		return nil
 	}
 	
 	public var localizedName: String {
