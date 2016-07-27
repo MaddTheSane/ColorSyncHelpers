@@ -22,7 +22,9 @@ private func profileIterate(profileInfo: NSDictionary!, userInfo: UnsafeMutableP
 }
 
 //TODO: add dictionary generater
+/// A class that references a ColorSync profile.
 public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
+	/// Internal ColorSync profile reference that the class wraps around.
 	public private(set) var profile: ColorSyncProfile
 	
 	public static func allProfiles() throws -> [CSProfile] {
@@ -67,9 +69,9 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	}
 	
 	/// Creates a profile from a URL.
-	public convenience init(contentsOfURL: NSURL) throws {
+	public convenience init(contentsOfURL url: NSURL) throws {
 		var errVal: Unmanaged<CFError>?
-		if let csVal = ColorSyncProfileCreateWithURL(contentsOfURL, &errVal)?.takeRetainedValue() {
+		if let csVal = ColorSyncProfileCreateWithURL(url, &errVal)?.takeRetainedValue() {
 			self.init(internalPtr: csVal)
 		} else {
 			guard let errStuff = errVal?.takeUnretainedValue() else {
@@ -87,6 +89,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 		self.init(internalPtr: retVal)
 	}
 	
+	/// Creates a linked CSProfile object.
 	/// - parameter profileInfo: array of dictionaries, each one containing a profile object and the
 	/// information on the usage of the profile in the transform.
 	///
@@ -108,7 +111,8 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 		self.init(internalPtr: prof)
 	}
 	
-	/// - parameter displayID: system-wide unique display ID (defined by IOKIt); pass 0 for main display.
+	/// Creates a CSProfile from a display ID.
+	/// - parameter displayID: system-wide unique display ID (defined by IOKIt); pass `0` for main display.
 	///
 	/// - returns: ColorSyncProfileRef or `nil` in case of failure
 	public convenience init?(displayID: UInt32) {
@@ -118,7 +122,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 		self.init(internalPtr: aRet)
 	}
 	
-	///
+	/// Creates a CSProfile from device info passed to it.
 	/// - parameter deviceClass: ColorSync device class
 	/// - parameter deviceID: deviceID registered with ColorSync
 	/// - parameter profileID: profileID registered with ColorSync; pass `kColorSyncDeviceDefaultProfileID` (the default) to get the default profile.
@@ -137,7 +141,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	}
 	
 	/// The data associated with the signature.
-	/// - parameter tag: signature of the tag to be copied
+	/// - parameter tag: signature of the tag to be retrieved 
 	public subscript (tag: String) -> NSData? {
 		get {
 			if let data = ColorSyncProfileCopyTag(profile, tag)?.takeRetainedValue() {
@@ -234,7 +238,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	///             `kColorSyncProfileComputerDomain` is for sharing the profiles (from `/Library/ColorSync/Profiles`).<br>
 	///             `kColorSyncProfileUserDomain` is for user custom profiles (installed under home directory, i.e. in
 	///             `~/Library/ColorSync/Profiles`.<br>
-	///             Default is `kColorSyncProfileUserDomain`.
+	/// Default is `kColorSyncProfileUserDomain`.
 	/// - parameter subpath:	String created from the file system representation of the path of
 	/// the file to contain the installed profile. The last component of the path is interpreted 
 	/// as a file name if it ends with the extension ".icc". Otherwise, the subpath is interpreted
@@ -285,6 +289,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	}
 }
 
+/// Estimates the display gamma for the passed-in display.
 /// - parameter displayID: system-wide unique display ID (defined by IOKIt)
 public func estimateGamma(displayID displayID: Int32) throws -> Float {
 	var errVal: Unmanaged<CFError>?
@@ -328,6 +333,7 @@ public final class CSMutableProfile: CSProfile {
 		}
 	}
 
+	/// Removes a tag named `named`.
 	public func removeTag(named: String) {
 		ColorSyncProfileRemoveTag(mutPtr, named)
 	}

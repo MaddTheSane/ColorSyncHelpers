@@ -7,7 +7,7 @@
 //
 
 import XCTest
-import ColorSyncHelpers
+@testable import ColorSyncHelpers
 
 let validICCData: [UInt8] = [0x00,0x00,0x02,0x20,0x61,0x70,0x70,0x6C,0x02,0x20,
 	0x00,0x00,0x6D,0x6E,0x74,0x72,0x52,0x47,0x42,0x20,0x58,0x59,0x5A,0x20,
@@ -78,23 +78,28 @@ class ColorSyncHelpersTests: XCTestCase {
 			let profiles = try CSProfile.allProfiles()
 			for profile in profiles {
 				var des = profile.description
-				print(des)
+				print("\(des):")
 				let tmpSigs = profile.tagSignatures
 				des = tmpSigs.description
-				print("tags: " + des)
+				print("\tTags: " + des)
 				let dat = profile.header
 				des = dat?.description ?? "nil"
-				print("Header: " + des)
+				print("\tHeader: " + des)
 				//dat = try? profile.rawData()
 				//des = dat?.description ?? "nil"
 				//print("Raw Profile data: " + des)
 				let gamma = try? profile.estimateGamma()
 				des = gamma?.description ?? "nil"
-				print("gamma: \(des)")
+				print("\tGamma: \(des)")
 				let url = profile.URL
 				des = url?.description ?? "nil"
-				print("URL: \(des)")
-				print("MD5: \(profile.MD5)")
+				print("\tURL: \(des)")
+				if let md5 = profile.MD5 {
+					des = "\(md5)"
+				} else {
+					des = "nil"
+				}
+				print("\tMD5: \(des)")
 				print("")
 				//for tag in tmpSigs {
 				//	let data = profile[tag]!
@@ -177,7 +182,7 @@ class ColorSyncHelpersTests: XCTestCase {
 			}
 			
 			let mutProfile = profile.mutableCopy()
-			mutProfile[kColorSyncSigCopyrightTag.takeUnretainedValue() as String] = "Testing this...".dataUsingEncoding(NSUTF8StringEncoding)
+			mutProfile[kColorSyncSigCopyrightTag.takeUnretainedValue() as String] = "text\0\0\0\0Testing this…\0".dataUsingEncoding(NSUTF8StringEncoding)
 			print(mutProfile.profile)
 			mutProfile[kColorSyncSigCopyrightTag.takeUnretainedValue() as String] = nil
 			print(mutProfile.profile)
@@ -194,6 +199,8 @@ class ColorSyncHelpersTests: XCTestCase {
 		
 		do {
 			let aMut2 = try CSMutableProfile(data: data)
+			print(aMut2.profile)
+			aMut2.removeTag(kColorSyncSigCopyrightTag.takeUnretainedValue() as String)
 			print(aMut2.profile)
 		} catch {
 			XCTAssert(false, "CSMutableProfile failed, \(error)")

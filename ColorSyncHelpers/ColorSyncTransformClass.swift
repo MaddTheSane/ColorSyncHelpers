@@ -9,6 +9,10 @@
 import Foundation
 import ApplicationServices
 
+/// A class that references a ColorSync transform.
+///
+/// Most keys are in ApplicationServices/ColorSync/ColorSyncTransform. 
+/// Note that you may have to unwrap them!
 public final class CSTransform: CustomDebugStringConvertible {
 	public struct DataLayout: OptionSetType {
 		public let rawValue: UInt32
