@@ -36,8 +36,11 @@ public final class CSCMM: CustomStringConvertible, CustomDebugStringConvertible 
 	}
 	
 	public convenience init?(bundle: Bundle) {
-		let newBund = CFBundleCreate(kCFAllocatorDefault, bundle.bundleURL)
-		self.init(bundle: newBund!)
+		if let newBund = CFBundleCreate(kCFAllocatorDefault, bundle.bundleURL) {
+			self.init(bundle: newBund)
+		} else {
+			return nil
+		}
 	}
 	
 	public init?(bundle: CFBundle) {
@@ -50,7 +53,7 @@ public final class CSCMM: CustomStringConvertible, CustomDebugStringConvertible 
 	/// will return `nil` for Apple's built-in CMM
 	public var bundle: Bundle? {
 		if let cfBundle = ColorSyncCMMGetBundle(cmmInt)?.takeUnretainedValue() {
-			let aURL: URL = CFBundleCopyBundleURL(cfBundle) as URL
+			let aURL = CFBundleCopyBundleURL(cfBundle) as URL
 			return Bundle(url: aURL)!
 		}
 		return nil

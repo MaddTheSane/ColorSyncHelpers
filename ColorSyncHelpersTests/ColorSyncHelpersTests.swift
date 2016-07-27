@@ -219,4 +219,24 @@ class ColorSyncHelpersTests: XCTestCase {
 		
 		XCTAssertNotNil(md5Data)
 	}
+	
+	func testInvalidRemove() {
+		let data = Data(bytes: UnsafePointer<UInt8>(validICCData), count: validICCData.count)
+		
+		guard let profile = try? CSProfile(data: data) else {
+			XCTAssert(false, "CSProfile failed")
+			return
+		}
+
+		do {
+			try profile.uninstall()
+		} catch let error as CSErrors {
+			print("Got CSError:", error.rawValue)
+			//XCTAssert(false, "We got invalid error returned")
+			return
+		} catch {
+			print(error)
+		}
+		XCTAssert(false, "What did we uninstall!?")
+	}
 }

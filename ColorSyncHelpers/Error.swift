@@ -8,7 +8,8 @@
 
 import Foundation
 
-public enum CSErrors: Int, ErrorProtocol {
+@objc public enum CSErrors: Int, ErrorProtocol {
+	/// Could not unwrap the error that was returned from a failed function call.
 	case unwrappingError = -1
 	
 	public var _code: Int {
