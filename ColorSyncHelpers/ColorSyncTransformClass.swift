@@ -15,6 +15,7 @@ import ApplicationServices
 /// Note that you may have to unwrap them!
 public final class CSTransform: CustomDebugStringConvertible {
 	
+	/// The color depth of the data.
 	public typealias Depth = ColorSyncDataDepth
 	
 	/// The data layout of the data that will be read/written by the
@@ -41,6 +42,7 @@ public final class CSTransform: CustomDebugStringConvertible {
 			case NoneSkipFirst
 		}
 		
+		/// The alpha info of the current layout.
 		public var alphaInfo: AlphaInfo {
 			get {
 				let newVal = self.intersect(.AlphaInfoMask)
@@ -63,7 +65,7 @@ public final class CSTransform: CustomDebugStringConvertible {
 		public static var ByteOrder32Big: Layout { return Layout(rawValue: 4 << 12) }
 	}
 
-	var cstint: ColorSyncTransformRef
+	let cstint: ColorSyncTransformRef
 	
 	public var debugDescription: String {
 		return CFCopyDescription(cstint) as String
@@ -151,13 +153,23 @@ public final class CSTransform: CustomDebugStringConvertible {
 	/// gets the property of the specified key
 	/// - parameter key: `CFTypeRef` to be used as a key to identify the property
 	public func getProperty(key key: AnyObject, options: [String: AnyObject]? = nil) -> AnyObject? {
-		return ColorSyncTransformCopyProperty(cstint, key, sanitizeOptions(options)).takeRetainedValue()
+		return ColorSyncTransformCopyProperty(cstint, key, sanitizeOptions(options))?.takeRetainedValue()
 	}
 	
 	/// Sets the property
 	/// - parameter key: `CFTypeRef` to be used as a key to identify the property
 	/// - parameter property: `CFTypeRef` to be set as the property
-	public func setProperty(key key: AnyObject, property: AnyObject) {
+	public func setProperty(key key: AnyObject, property: AnyObject?) {
 		ColorSyncTransformSetProperty(cstint, key, property)
+	}
+	
+	/// Gets and sets the properties.
+	public subscript (key: AnyObject) -> AnyObject? {
+		get {
+			return getProperty(key: key)
+		}
+		set {
+			ColorSyncTransformSetProperty(cstint, key, newValue)
+		}
 	}
 }

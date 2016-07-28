@@ -51,7 +51,7 @@ func sanitizeProfileInfo(profileSequence: [[String:AnyObject]]) -> [[String:AnyO
 /// A class that references a ColorSync profile.
 public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	/// Internal ColorSync profile reference that the class wraps around.
-	public private(set) var profile: ColorSyncProfile
+	public let profile: ColorSyncProfile
 	
 	/// Returns all of the installed profiles.
 	public static func allProfiles() throws -> [CSProfile] {
@@ -302,20 +302,15 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	/// A utility function converting `vcgt` tag (if `vcgt` tag exists in the profile and 
 	/// conversion possible) to formula components used by `CGSetDisplayTransferByFormula`.
 	public final func displayTransferFormulaFromVCGT() -> (red: (min: Float, max: Float, gamma: Float), green: (min: Float, max: Float, gamma: Float), blue: (min: Float, max: Float, gamma: Float))? {
-		var redMin: Float = 0
-		var redMax: Float = 0
-		var redGamma: Float = 0
-		var greenMin: Float = 0
-		var greenMax: Float = 0
-		var greenGamma: Float = 0
-		var blueMin: Float = 0
-		var blueMax: Float = 0
-		var blueGamma: Float = 0
-		if !ColorSyncProfileGetDisplayTransferFormulaFromVCGT(profile, &redMin, &redMax, &redGamma, &greenMin, &greenMax, &greenGamma, &blueMin, &blueMax, &blueGamma) {
+		typealias Component = (min: Float, max: Float, gamma: Float)
+		var red = Component(0, 0, 0)
+		var green = Component(0, 0, 0)
+		var blue = Component(0, 0, 0)
+		if !ColorSyncProfileGetDisplayTransferFormulaFromVCGT(profile, &red.min, &red.max, &red.gamma, &green.min, &green.max, &green.gamma, &blue.min, &blue.max, &blue.gamma) {
 			return nil
 		}
 		
-		return ((redMin, redMax, redGamma), (greenMin, greenMax, greenGamma), (blueMin, blueMax, blueGamma))
+		return (red, green, blue)
 	}
 }
 
@@ -336,7 +331,7 @@ public func estimateGamma(displayID displayID: Int32) throws -> Float {
 
 /// A mutable version of `CSProfile`.
 public final class CSMutableProfile: CSProfile {
-	private var mutPtr: ColorSyncMutableProfile
+	private let mutPtr: ColorSyncMutableProfile
 	
 	/// returns empty CSMutableProfile
 	public init() {

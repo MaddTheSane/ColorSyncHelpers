@@ -18,7 +18,7 @@ private func cmmIterator(cmm: ColorSyncCMM!, userInfo: UnsafeMutablePointer<Void
 }
 
 public final class CSCMM: CustomStringConvertible, CustomDebugStringConvertible {
-	var cmmInt: ColorSyncCMMRef
+	let cmmInt: ColorSyncCMMRef
 	
 	/// The system-supplied CMM
 	public static var appleCMM: CSCMM {
