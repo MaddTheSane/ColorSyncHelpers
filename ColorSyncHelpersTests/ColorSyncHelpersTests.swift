@@ -65,12 +65,14 @@ class ColorSyncHelpersTests: XCTestCase {
     
     func testBasicGetters() {
 		let cmms = CSCMM.installedCMMs()
+		let nilStr = "(nil)"
 		print("CMMs:")
 		print(cmms)
 		for cmm in cmms {
-			print("Bundle: \(cmm.bundle)")
-			print("Localized Name: \(cmm.localizedName)")
-			print("Identifier: \(cmm.identifier)")
+			print(cmm.description)
+			print("\tBundle: \(cmm.bundle)")
+			print("\tLocalized Name: \(cmm.localizedName)")
+			print("\tIdentifier: \(cmm.identifier)")
 		}
 		
 		print("\nProfiles:")
@@ -83,27 +85,27 @@ class ColorSyncHelpersTests: XCTestCase {
 				des = tmpSigs.description
 				print("\tTags: " + des)
 				let dat = profile.header
-				des = dat?.description ?? "nil"
+				des = dat?.description ?? nilStr
 				print("\tHeader: " + des)
 				//dat = try? profile.rawData()
 				//des = dat?.description ?? "nil"
 				//print("Raw Profile data: " + des)
 				let gamma = try? profile.estimateGamma()
-				des = gamma?.description ?? "nil"
+				des = gamma?.description ?? nilStr
 				print("\tGamma: \(des)")
 				let url = profile.URL
-				des = url?.description ?? "nil"
+				des = url?.description ?? nilStr
 				print("\tURL: \(des)")
 				if let md5 = profile.MD5 {
 					des = "\(md5)"
 				} else {
-					des = "nil"
+					des = nilStr
 				}
 				print("\tMD5: \(des)")
-				print("")
+				//print("\ttags:")
 				//for tag in tmpSigs {
 				//	let data = profile[tag]!
-				//	print("\(tag): \(data)")
+				//	print("\t\t\(tag): \(data)")
 				//}
 				//print("")
 			}
