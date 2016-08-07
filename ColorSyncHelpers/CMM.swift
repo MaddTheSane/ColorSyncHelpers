@@ -21,8 +21,20 @@ private func cmmIterator(_ cmm: ColorSyncCMM?, userInfo: UnsafeMutablePointer<Vo
 }
 
 public final class CSCMM: CustomStringConvertible, CustomDebugStringConvertible {
-	var cmmInt: ColorSyncCMM?
+	let cmmInt: ColorSyncCMM
 	
+	/// The system-supplied CMM
+	public static var appleCMM: CSCMM {
+		let cmms = installedCMMs()
+		for cmm in cmms {
+			if cmm.bundle == nil {
+				return cmm
+			}
+		}
+		return cmms.first!
+	}
+	
+	/// Returns all of the available CMMs.
 	public static func installedCMMs() -> [CSCMM] {
 		let cmms = NSMutableArray()
 		
@@ -35,6 +47,7 @@ public final class CSCMM: CustomStringConvertible, CustomDebugStringConvertible 
 		cmmInt = cmm
 	}
 	
+	/// Creates a CSCMM object from the supplied bundle.
 	public convenience init?(bundle: Bundle) {
 		if let newBund = CFBundleCreate(kCFAllocatorDefault, bundle.bundleURL) {
 			self.init(bundle: newBund)
@@ -43,6 +56,7 @@ public final class CSCMM: CustomStringConvertible, CustomDebugStringConvertible 
 		}
 	}
 	
+	/// Creates a CSCMM object from the supplied bundle.
 	public init?(bundle: CFBundle) {
 		guard let newCmm = ColorSyncCMMCreate(bundle)?.takeRetainedValue() else {
 			return nil
@@ -50,7 +64,7 @@ public final class CSCMM: CustomStringConvertible, CustomDebugStringConvertible 
 		cmmInt = newCmm
 	}
 	
-	/// will return `nil` for Apple's built-in CMM
+	/// Will return `nil` for Apple's built-in CMM
 	public var bundle: Bundle? {
 		if let cfBundle = ColorSyncCMMGetBundle(cmmInt)?.takeUnretainedValue() {
 			let aURL = CFBundleCopyBundleURL(cfBundle) as URL
@@ -59,10 +73,12 @@ public final class CSCMM: CustomStringConvertible, CustomDebugStringConvertible 
 		return nil
 	}
 	
+	/// Returns the localized name of the ColorSync module
 	public var localizedName: String {
 		return ColorSyncCMMCopyLocalizedName(cmmInt)!.takeRetainedValue() as String
 	}
 	
+	/// Returns the identifier of the ColorSync module
 	public var identifier: String {
 		return ColorSyncCMMCopyCMMIdentifier(cmmInt)!.takeRetainedValue() as String
 	}
