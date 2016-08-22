@@ -58,7 +58,6 @@ public final class CSTransform: CustomDebugStringConvertible {
 		public static var AlphaInfoMask: Layout { return Layout(rawValue: 0x1f) }
 		
 		public static var ByteOrderMask: Layout { return Layout(rawValue: 0x7000) }
-		public static var ByteOrderDefault: Layout { return Layout(rawValue: 0 << 12) }
 		public static var ByteOrder16Little: Layout { return Layout(rawValue: 1 << 12) }
 		public static var ByteOrder32Little: Layout { return Layout(rawValue: 2 << 12) }
 		public static var ByteOrder16Big: Layout { return Layout(rawValue: 3 << 12) }
