@@ -312,6 +312,26 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 		
 		return (red, green, blue)
 	}
+	
+	/// Verify the current profile.
+	/// - throws: if the profile cannot be used.
+	/// - returns: warnings indicating problems due to lack of
+	/// conformance with the ICC specification, but not preventing
+	/// use of the profile.<br>
+	/// Will be `nil` if there is no problems.
+	public final func verify() throws -> NSError? {
+		var errors: Unmanaged<CFError>? = nil
+		var warnings: Unmanaged<CFError>? = nil
+		let usable = ColorSyncProfileVerify(profile, &errors, &warnings)
+		
+		guard usable else {
+			guard let errors = errors?.takeUnretainedValue() else {
+				throw CSErrors.UnwrappingError
+			}
+			throw errors
+		}
+		return (warnings?.takeUnretainedValue() as AnyObject?) as? NSError
+	}
 }
 
 /// Estimates the display gamma for the passed-in display.

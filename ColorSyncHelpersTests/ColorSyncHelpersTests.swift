@@ -85,33 +85,53 @@ class ColorSyncHelpersTests: XCTestCase {
 			for profile in profiles {
 				var des = profile.description
 				print("\(des):")
+				do {
 				let tmpSigs = profile.tagSignatures
 				des = tmpSigs.description
 				print("\tTags: " + des)
+				}
+				do {
 				let dat = profile.header
 				des = dat?.description ?? nilStr
 				print("\tHeader: " + des)
+				}
 				//dat = try? profile.rawData()
 				//des = dat?.description ?? "nil"
 				//print("Raw Profile data: " + des)
+				do {
 				let gamma = try? profile.estimateGamma()
 				des = gamma?.description ?? nilStr
 				print("\tGamma: \(des)")
+				}
+				do {
 				let url = profile.URL
 				des = url?.description ?? nilStr
 				print("\tURL: \(des)")
+				}
+				do {
 				if let md5 = profile.MD5 {
 					des = "\(md5)"
 				} else {
 					des = nilStr
 				}
 				print("\tMD5: \(des)")
+				}
 				//print("\ttags:")
 				//for tag in tmpSigs {
 				//	let data = profile[tag]!
 				//	print("\t\t\(tag): \(data)")
 				//}
 				//print("")
+				do {
+					if let warnings = try profile.verify() {
+						des = "Warnings: \(warnings)"
+					} else {
+						des = "no warnings"
+					}
+				} catch {
+					des = "Invalid: \(error)"
+				}
+				print("\tVerify: \(des)")
 			}
 		} catch _ {}
     }
@@ -204,6 +224,7 @@ class ColorSyncHelpersTests: XCTestCase {
 			mutProfile[copyrightTag] = nil
 			print(mutProfile.profile)
 			testCopyrightTag(mutProfile)
+			XCTAssertNil(mutProfile[copyrightTag])
 		} catch {
 			XCTAssert(false, "CSProfile failed, \(error)")
 		}
