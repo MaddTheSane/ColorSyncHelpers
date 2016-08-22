@@ -122,14 +122,14 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	/// - parameter profileInfo: array of dictionaries, each one containing a profile object and the
 	/// information on the usage of the profile in the transform.
 	///
-	///               Required keys:
-	///               ==============
-	///                      kColorSyncProfile           : ColorSyncProfileRef or CSProfile
-	///                      kColorSyncRenderingIntent   : CFStringRef defining rendering intent
-	///                      kColorSyncTransformTag      : CFStringRef defining which tags to use
-	///               Optional key:
-	///               =============
-	///                    kColorSyncBlackPointCompensation : CFBooleanRef to enable/disable BPC
+	///       Required keys:
+	///       ==============
+	///              kColorSyncProfile           : ColorSyncProfileRef or CSProfile
+	///              kColorSyncRenderingIntent   : CFStringRef defining rendering intent
+	///              kColorSyncTransformTag      : CFStringRef defining which tags to use
+	///       Optional key:
+	///       =============
+	///            kColorSyncBlackPointCompensation : CFBooleanRef to enable/disable BPC
 	///
 	/// - parameter options: dictionary with additional public global options (e.g. 
 	/// preferred CMM, quality, etc…) It can also contain custom options that are CMM specific.

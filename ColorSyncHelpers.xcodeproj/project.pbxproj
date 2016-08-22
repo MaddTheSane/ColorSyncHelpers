@@ -11,6 +11,7 @@
 		5507A9CD1C7104AC0060A8AA /* ColorSyncHelpersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5507A9CC1C7104AC0060A8AA /* ColorSyncHelpersTests.swift */; };
 		5507A9CF1C7104AC0060A8AA /* ColorSyncHelpers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55FD124C1C6F12A5009FB22C /* ColorSyncHelpers.framework */; };
 		5507A9D61C71308E0060A8AA /* Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5507A9D51C71308E0060A8AA /* Error.swift */; };
+		556AD6F41D6B9C9300628E60 /* ColorSyncDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556AD6F31D6B9C9300628E60 /* ColorSyncDevice.swift */; };
 		55FD12501C6F12A5009FB22C /* ColorSyncHelpers.h in Headers */ = {isa = PBXBuildFile; fileRef = 55FD124F1C6F12A5009FB22C /* ColorSyncHelpers.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		55FD12581C6F12C5009FB22C /* ColorSyncTransformClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55FD12571C6F12C5009FB22C /* ColorSyncTransformClass.swift */; };
 		55FD125A1C6F13ED009FB22C /* ColorSyncProfileClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55FD12591C6F13ED009FB22C /* ColorSyncProfileClass.swift */; };
@@ -32,6 +33,7 @@
 		5507A9CC1C7104AC0060A8AA /* ColorSyncHelpersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorSyncHelpersTests.swift; sourceTree = "<group>"; };
 		5507A9CE1C7104AC0060A8AA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5507A9D51C71308E0060A8AA /* Error.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Error.swift; sourceTree = "<group>"; };
+		556AD6F31D6B9C9300628E60 /* ColorSyncDevice.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorSyncDevice.swift; sourceTree = "<group>"; };
 		55FD124C1C6F12A5009FB22C /* ColorSyncHelpers.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ColorSyncHelpers.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		55FD124F1C6F12A5009FB22C /* ColorSyncHelpers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ColorSyncHelpers.h; sourceTree = "<group>"; };
 		55FD12511C6F12A5009FB22C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -92,6 +94,7 @@
 				55FD12591C6F13ED009FB22C /* ColorSyncProfileClass.swift */,
 				5507A9C41C70805B0060A8AA /* CMM.swift */,
 				5507A9D51C71308E0060A8AA /* Error.swift */,
+				556AD6F31D6B9C9300628E60 /* ColorSyncDevice.swift */,
 				55FD124F1C6F12A5009FB22C /* ColorSyncHelpers.h */,
 				55FD12511C6F12A5009FB22C /* Info.plist */,
 			);
@@ -217,6 +220,7 @@
 				5507A9D61C71308E0060A8AA /* Error.swift in Sources */,
 				55FD12581C6F12C5009FB22C /* ColorSyncTransformClass.swift in Sources */,
 				55FD125A1C6F13ED009FB22C /* ColorSyncProfileClass.swift in Sources */,
+				556AD6F41D6B9C9300628E60 /* ColorSyncDevice.swift in Sources */,
 				5507A9C51C70805B0060A8AA /* CMM.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
