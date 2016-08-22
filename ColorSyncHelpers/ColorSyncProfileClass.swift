@@ -194,9 +194,9 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	public final var MD5: ColorSyncMD5? {
 		let toRet = ColorSyncProfileGetMD5(profile)
 		var theMD5 = toRet
-		let toCheck = withUnsafePointer(&theMD5.digest) { (TheT) -> UnsafeBufferPointer<UInt8> in
-			let newErr = UnsafePointer<UInt8>(TheT)
-			return UnsafeBufferPointer<UInt8>(start: newErr, count: 16)
+		let toCheck = withUnsafePointer(&theMD5.digest) { (TheT) -> UnsafeBufferPointer<UInt64> in
+			let newErr = UnsafePointer<UInt64>(TheT)
+			return UnsafeBufferPointer<UInt64>(start: newErr, count: 2)
 		}
 		for i in toCheck {
 			if i != 0 {
