@@ -75,7 +75,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 			return nil
 		}
 		do {
-			try self.init(contentsOfURL: mURL)
+			try self.init(contentsOf: mURL)
 		} catch _ {
 			return nil
 		}
@@ -100,7 +100,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	}
 	
 	/// Creates a profile from a URL.
-	public convenience init(contentsOfURL url: Foundation.URL) throws {
+	public convenience init(contentsOf url: Foundation.URL) throws {
 		var errVal: Unmanaged<CFError>?
 		if let csVal = ColorSyncProfileCreateWithURL(url as NSURL, &errVal)?.takeRetainedValue() {
 			self.init(internalPtr: csVal)
@@ -214,7 +214,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 		return ColorSyncProfileGetURL(profile, nil)?.takeUnretainedValue() as URL?
 	}
 	
-	/// `NSData` containing the header data in host endianess.
+	/// `Data` containing the header data in host endianess.
 	public var header: Data? {
 		return ColorSyncProfileCopyHeader(profile)?.takeRetainedValue() as Data?
 	}
@@ -259,7 +259,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	}
 	
 	/// An utility function creating three tables of floats (redTable, greenTable, blueTable)
-	/// each of size `samplesPerChannel`, packed into contiguous memory contained in the `NSData`
+	/// each of size `samplesPerChannel`, packed into contiguous memory contained in the `Data`
 	/// to be returned from the `vcgt` tag of the profile (if `vcgt` tag exists in the profile).
 	public final func displayTransferTablesFromVCGT(_ samplesPerChannel: inout Int) -> Data? {
 		return ColorSyncProfileCreateDisplayTransferTablesFromVCGT(profile, &samplesPerChannel)?.takeRetainedValue() as Data?
@@ -322,7 +322,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	/// conformance with the ICC specification, but not preventing
 	/// use of the profile.<br>
 	/// Will be `nil` if there is no problems.
-	public final func verify() throws -> NSError? {
+	public final func verify() throws -> Error? {
 		var errors: Unmanaged<CFError>? = nil
 		var warnings: Unmanaged<CFError>? = nil
 		let usable = ColorSyncProfileVerify(profile, &errors, &warnings)
@@ -333,7 +333,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 			}
 			throw errors
 		}
-		return (warnings?.takeUnretainedValue() as AnyObject?) as? NSError
+		return warnings?.takeUnretainedValue() as? Error
 	}
 }
 

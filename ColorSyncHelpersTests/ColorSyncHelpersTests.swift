@@ -105,7 +105,7 @@ class ColorSyncHelpersTests: XCTestCase {
 				}
 				do {
 				let url = profile.URL
-				des = url?.description ?? nilStr
+				des = url?.path ?? nilStr
 				print("\tURL: \(des)")
 				}
 				do {
@@ -122,6 +122,14 @@ class ColorSyncHelpersTests: XCTestCase {
 				//	print("\t\t\(tag): \(data)")
 				//}
 				//print("")
+				do {
+					if let dtf = profile.displayTransferFormulaFromVCGT() {
+						des = "\(dtf)"
+					} else {
+						des = nilStr
+					}
+					print("Display Transfer Formula: \(des)")
+				}
 				do {
 					if let warnings = try profile.verify() {
 						des = "Warnings: \(warnings)"
@@ -173,7 +181,7 @@ class ColorSyncHelpersTests: XCTestCase {
 			0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 			0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 			0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00]
-		let data = Data(bytes: UnsafePointer<UInt8>(byteArray), count: byteArray.count)
+		let data = Data(byteArray)
 		
 		do {
 			let profile = try CSProfile(data: data)
@@ -183,7 +191,7 @@ class ColorSyncHelpersTests: XCTestCase {
 			XCTAssert(true, "CSProfile failed, \(error)")
 			return
 		}
-		XCTAssert(false, "CSProfile should have failed")
+		XCTFail("CSProfile should have failed")
 	}
 	
 	func testValidData() {
@@ -193,7 +201,7 @@ class ColorSyncHelpersTests: XCTestCase {
 			let profile = try CSProfile(data: data)
 			print(profile)
 		} catch {
-			XCTAssert(false, "CSProfile failed, \(error)")
+			XCTFail("CSProfile failed, \(error)")
 		}
 	}
 	
@@ -226,7 +234,7 @@ class ColorSyncHelpersTests: XCTestCase {
 			testCopyrightTag(profile: mutProfile)
 			XCTAssertNil(mutProfile[copyrightTag])
 		} catch {
-			XCTAssert(false, "CSProfile failed, \(error)")
+			XCTFail("CSProfile failed, \(error)")
 		}
 	}
 	
@@ -242,7 +250,7 @@ class ColorSyncHelpersTests: XCTestCase {
 			aMut2.removeTag(kColorSyncSigCopyrightTag.takeUnretainedValue() as String)
 			print(aMut2.profile)
 		} catch {
-			XCTAssert(false, "CSMutableProfile failed, \(error)")
+			XCTFail("CSMutableProfile failed, \(error)")
 		}
 	}
 	
@@ -250,7 +258,7 @@ class ColorSyncHelpersTests: XCTestCase {
 		let data = validICCNSData
 
 		guard let profile = try? CSProfile(data: data) else {
-			XCTAssert(false, "CSProfile failed")
+			XCTFail("CSProfile failed")
 			return
 		}
 
@@ -263,7 +271,7 @@ class ColorSyncHelpersTests: XCTestCase {
 		let data = validICCNSData
 		
 		guard let profile = try? CSProfile(data: data) else {
-			XCTAssert(false, "CSProfile failed")
+			XCTFail("CSProfile failed")
 			return
 		}
 
@@ -271,11 +279,11 @@ class ColorSyncHelpersTests: XCTestCase {
 			try profile.uninstall()
 		} catch let error as CSErrors {
 			print("Got CSError:", error.rawValue)
-			//XCTAssert(false, "We got invalid error returned")
+			//XCTFail("We got invalid error returned")
 			return
 		} catch {
 			print(error)
 		}
-		XCTAssert(false, "What did we uninstall!?")
+		XCTFail("What did we uninstall!?")
 	}
 }

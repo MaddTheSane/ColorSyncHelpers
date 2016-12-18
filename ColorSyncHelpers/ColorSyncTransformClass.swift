@@ -73,7 +73,7 @@ public final class CSTransform: CustomDebugStringConvertible {
 	/// Creates a transform class with a transform from `from` to `to`.
 	///
 	/// This is equivalent to using the perceptual rendering intent.
-	public convenience init?(from: CSProfile, to: CSProfile) {
+	public convenience init?(from: CSProfile, to: CSProfile, options: [String: Any]? = nil) {
 		let fromArr: [String: Any]
 			= [kColorSyncProfile.takeUnretainedValue() as String: from.profile,
 			   kColorSyncRenderingIntent.takeUnretainedValue() as String: kColorSyncRenderingIntentPerceptual.takeUnretainedValue() as NSString,
@@ -83,7 +83,7 @@ public final class CSTransform: CustomDebugStringConvertible {
 			   kColorSyncRenderingIntent.takeUnretainedValue() as String: kColorSyncRenderingIntentPerceptual.takeUnretainedValue() as NSString,
 			   kColorSyncTransformTag.takeUnretainedValue() as String:kColorSyncTransformPCSToDevice.takeUnretainedValue() as NSString]
 
-		self.init(profileSequence: [fromArr, toArr], options: nil)
+		self.init(profileSequence: [fromArr, toArr], options: options)
 	}
 	
 	/// Creates a new transform class
@@ -144,14 +144,14 @@ public final class CSTransform: CustomDebugStringConvertible {
 	/// - parameter source: information about the data to be converted.
 	/// - parameter options: additional options. Default is `nil`.
 	/// - returns: `true` if conversion was successful or `false` otherwise.
-	public func transform(width: Int, height: Int, destination: (data: NSMutableData, depth: Depth, layout: Layout, bytesPerRow: Int), source: (data: NSData, depth: Depth, layout: Layout, bytesPerRow: Int), options: [String: Any]? = nil) -> Bool {
+	public func transform(width: Int, height: Int, destination: (data: NSMutableData, depth: Depth, layout: Layout, bytesPerRow: Int), source: (data: Data, depth: Depth, layout: Layout, bytesPerRow: Int), options: [String: Any]? = nil) -> Bool {
 		
 		return transform(width: width, height: height, dst: destination.data.mutableBytes, dstDepth: destination.depth, dstLayout: destination.layout, dstBytesPerRow: destination.bytesPerRow, src: (source.data as NSData).bytes, srcDepth: source.depth, srcLayout: source.layout, srcBytesPerRow: source.bytesPerRow, options: options)
 	}
 	
 	/// gets the property of the specified key
 	/// - parameter key: `CFTypeRef` to be used as a key to identify the property
-	public func getProperty(key: AnyObject, options: [String: Any]? = nil) -> AnyObject? {
+	public func getProperty(forKey key: AnyObject, options: [String: Any]? = nil) -> AnyObject? {
 		return ColorSyncTransformCopyProperty(cstint, key, sanitize(options: options) as NSDictionary?)?.takeRetainedValue()
 	}
 	
@@ -165,7 +165,7 @@ public final class CSTransform: CustomDebugStringConvertible {
 	/// Gets and sets the properties.
 	public subscript (key: AnyObject) -> AnyObject? {
 		get {
-			return getProperty(key: key)
+			return getProperty(forKey: key)
 		}
 		set {
 			ColorSyncTransformSetProperty(cstint, key, newValue)

@@ -88,7 +88,7 @@ public class CSDevice {
 		return ColorSyncDeviceCopyDeviceInfo(deviceClass as NSString, identifier).takeRetainedValue() as NSDictionary as! [String: Any]
 	}
 	
-	public func info(deviceClass dc: Profiles.DeviceClass, identifier: NSUUID) -> Info {
+	public func info(deviceClass dc: Profiles.DeviceClass, identifier: UUID) -> Info {
 		//Info
 		
 		var devInfo = copyDeviceInfo(dc.rawValue, identifier: CFUUIDCreateFromString(kCFAllocatorDefault, identifier.uuidString as NSString))
