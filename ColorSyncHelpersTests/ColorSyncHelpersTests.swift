@@ -9,7 +9,7 @@
 import XCTest
 @testable import ColorSyncHelpers
 
-let validICCNSData: NSData = {
+let validICCNSData: Data = {
 	let validICCData: [UInt8] =
 		[0x00,0x00,0x02,0x20,0x61,0x70,0x70,0x6C,0x02,0x20,
 		 0x00,0x00,0x6D,0x6E,0x74,0x72,0x52,0x47,0x42,0x20,0x58,0x59,0x5A,0x20,
@@ -51,7 +51,7 @@ let validICCNSData: NSData = {
 		 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 		 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 		 0x00,0x00]
-	return NSData(bytes: validICCData, length: validICCData.count)
+	return Data(validICCData)
 }()
 
 
@@ -173,7 +173,7 @@ class ColorSyncHelpersTests: XCTestCase {
 			0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 			0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 			0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00]
-		let data = NSData(bytes: byteArray, length: byteArray.count)
+		let data = Data(bytes: UnsafePointer<UInt8>(byteArray), count: byteArray.count)
 		
 		do {
 			let profile = try CSProfile(data: data)
@@ -203,7 +203,7 @@ class ColorSyncHelpersTests: XCTestCase {
 		
 		func testCopyrightTag(profile: CSProfile) {
 			if let copy = profile[copyrightTag] {
-				print(String(data: copy, encoding: NSUTF8StringEncoding))
+				print(String(data: copy, encoding: String.Encoding.utf8) ?? "")
 			} else {
 				print("No \"\(copyrightTag)\" tag!")
 			}
@@ -212,18 +212,18 @@ class ColorSyncHelpersTests: XCTestCase {
 		do {
 			let profile = try CSProfile(data: data)
 			print(profile.profile)
-			testCopyrightTag(profile)
+			testCopyrightTag(profile: profile)
 			
 			let mutProfile = profile.mutableCopy()
-			testCopyrightTag(mutProfile)
-			mutProfile[copyrightTag] = "text\0\0\0\0Testing this…\0".dataUsingEncoding(NSUTF8StringEncoding)
-			testCopyrightTag(mutProfile)
+			testCopyrightTag(profile: mutProfile)
+			mutProfile[copyrightTag] = "text\0\0\0\0Testing this…\0".data(using: String.Encoding.utf8)
+			testCopyrightTag(profile: mutProfile)
 			print(mutProfile.profile)
 			XCTAssertNotNil(try? mutProfile.rawData())
 			print(mutProfile.profile)
 			mutProfile[copyrightTag] = nil
 			print(mutProfile.profile)
-			testCopyrightTag(mutProfile)
+			testCopyrightTag(profile: mutProfile)
 			XCTAssertNil(mutProfile[copyrightTag])
 		} catch {
 			XCTAssert(false, "CSProfile failed, \(error)")
@@ -257,5 +257,25 @@ class ColorSyncHelpersTests: XCTestCase {
 		let md5Data = profile.MD5
 		
 		XCTAssertNotNil(md5Data)
+	}
+	
+	func testInvalidRemove() {
+		let data = validICCNSData
+		
+		guard let profile = try? CSProfile(data: data) else {
+			XCTAssert(false, "CSProfile failed")
+			return
+		}
+
+		do {
+			try profile.uninstall()
+		} catch let error as CSErrors {
+			print("Got CSError:", error.rawValue)
+			//XCTAssert(false, "We got invalid error returned")
+			return
+		} catch {
+			print(error)
+		}
+		XCTAssert(false, "What did we uninstall!?")
 	}
 }

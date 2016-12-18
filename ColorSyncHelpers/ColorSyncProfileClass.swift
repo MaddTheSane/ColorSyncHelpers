@@ -11,17 +11,20 @@ import ApplicationServices
 
 /// Callback routine with a description of a profile that is
 /// called during an iteration through the available profiles.
-private func profileIterate(profileInfo: NSDictionary!, userInfo: UnsafeMutablePointer<Void>) -> Bool {
-	let array = Unmanaged<NSMutableArray>.fromOpaque(COpaquePointer(userInfo)).takeUnretainedValue()
+private func profileIterate(_ profileInfo: NSDictionary?, userInfo: UnsafeMutableRawPointer?) -> Bool {
+	guard let profileInfo = profileInfo as? [String: Any], let userInfo = userInfo else {
+		return false
+	}
+	let array = Unmanaged<NSMutableArray>.fromOpaque(userInfo).takeUnretainedValue()
 	
-	if let prof = CSProfile(iterateData: profileInfo as! [String: AnyObject]) {
-		array.addObject(prof)
+	if let prof = CSProfile(iterateData: profileInfo) {
+		array.add(prof)
 	}
 	
 	return true
 }
 
-func sanitizeOptions(options: [String: AnyObject]?) -> [String: AnyObject]? {
+func sanitize(options: [String: Any]?) -> [String: Any]? {
 	guard var options = options else {
 		return nil
 	}
@@ -34,11 +37,11 @@ func sanitizeOptions(options: [String: AnyObject]?) -> [String: AnyObject]? {
 }
 
 /// Make sure we don't pass our own `CSProfile`, but the `ColorSyncProfileRef` the API expects.
-func sanitizeProfileInfo(profileSequence: [[String:AnyObject]]) -> [[String:AnyObject]] {
+func sanitize(profileInfo profileSequence: [[String:Any]]) -> [[String:Any]] {
 	let colorSyncProfKey = kColorSyncProfile.takeUnretainedValue() as String
 	// make sure we don't pass our own CSProfile, but the ColorSyncProfileRef the API expects
-	let filtered = profileSequence.map { (TheDict) -> [String:AnyObject] in
-		var tmpDict: [String:AnyObject] = TheDict
+	let filtered = profileSequence.map { (TheDict) -> [String:Any] in
+		var tmpDict: [String:Any] = TheDict
 		if let csProfile = tmpDict[colorSyncProfKey] as? CSProfile {
 			tmpDict[colorSyncProfKey] = csProfile.profile
 		}
@@ -58,7 +61,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 		let profs = NSMutableArray()
 		var errVal: Unmanaged<CFError>?
 
-		ColorSyncIterateInstalledProfiles(profileIterate, nil, UnsafeMutablePointer<Void>(Unmanaged.passUnretained(profs).toOpaque()), &errVal);
+		ColorSyncIterateInstalledProfiles(profileIterate, nil, UnsafeMutableRawPointer(Unmanaged.passUnretained(profs).toOpaque()), &errVal);
 		
 		if let errVal = errVal?.takeUnretainedValue() {
 			throw errVal
@@ -67,8 +70,8 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 		return profs as NSArray as! [CSProfile]
 	}
 	
-	convenience init?(iterateData: [String: AnyObject]) {
-		guard let mURL = iterateData[kColorSyncProfileURL!.takeUnretainedValue() as String] as? NSURL else {
+	convenience init?(iterateData: [String: Any]) {
+		guard let mURL = iterateData[kColorSyncProfileURL!.takeUnretainedValue() as String] as? Foundation.URL else {
 			return nil
 		}
 		do {
@@ -78,32 +81,32 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 		}
 	}
 	
-	private init(internalPtr: ColorSyncProfile) {
+	fileprivate init(internalPtr: ColorSyncProfile) {
 		profile = internalPtr
 	}
 	
 	/// Creates a profile from ICC data.
 	/// - parameter data: profile data
-	public convenience init(data: NSData) throws {
+	public convenience init(data: Data) throws {
 		var errVal: Unmanaged<CFError>?
-		if let csVal = ColorSyncProfileCreate(data, &errVal)?.takeRetainedValue() {
+		if let csVal = ColorSyncProfileCreate(data as NSData, &errVal)?.takeRetainedValue() {
 			self.init(internalPtr: csVal)
 		} else {
 			guard let errStuff = errVal?.takeUnretainedValue() else {
-				throw CSErrors.UnwrappingError
+				throw CSErrors.unwrappingError
 			}
 			throw errStuff
 		}
 	}
 	
 	/// Creates a profile from a URL.
-	public convenience init(contentsOfURL url: NSURL) throws {
+	public convenience init(contentsOfURL url: Foundation.URL) throws {
 		var errVal: Unmanaged<CFError>?
-		if let csVal = ColorSyncProfileCreateWithURL(url, &errVal)?.takeRetainedValue() {
+		if let csVal = ColorSyncProfileCreateWithURL(url as NSURL, &errVal)?.takeRetainedValue() {
 			self.init(internalPtr: csVal)
 		} else {
 			guard let errStuff = errVal?.takeUnretainedValue() else {
-				throw CSErrors.UnwrappingError
+				throw CSErrors.unwrappingError
 			}
 			throw errStuff
 		}
@@ -112,7 +115,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	/// Creates a profile from a predefined name.
 	/// - parameter name: predefined profile name
 	public convenience init?(named name: String) {
-		guard let retVal = ColorSyncProfileCreateWithName(name)?.takeRetainedValue() else {
+		guard let retVal = ColorSyncProfileCreateWithName(name as NSString)?.takeRetainedValue() else {
 			return nil
 		}
 		self.init(internalPtr: retVal)
@@ -133,8 +136,8 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	///
 	/// - parameter options: dictionary with additional public global options (e.g. 
 	/// preferred CMM, quality, etc…) It can also contain custom options that are CMM specific.
-	public convenience init?(profileInfo: [[String: AnyObject]], options: [String: AnyObject]? = nil) {
-		guard let prof = ColorSyncProfileCreateLink(sanitizeProfileInfo(profileInfo), sanitizeOptions(options))?.takeRetainedValue() else {
+	public convenience init?(profileInfo: [[String: Any]], options: [String: Any]? = nil) {
+		guard let prof = ColorSyncProfileCreateLink(sanitize(profileInfo: profileInfo) as NSArray, sanitize(options: options) as NSDictionary?)?.takeRetainedValue() else {
 			return nil
 		}
 		self.init(internalPtr: prof)
@@ -158,7 +161,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	///
 	/// See ColorSyncDevice.h for more info on `deviceClass`, `deviceID` and `profileID`
 	public convenience init?(deviceClass: String, deviceID ID: CFUUID, profileID: AnyObject = kColorSyncDeviceDefaultProfileID.takeUnretainedValue()) {
-		if let aRet = ColorSyncProfileCreateDeviceProfile(deviceClass, ID, profileID)?.takeRetainedValue() {
+		if let aRet = ColorSyncProfileCreateDeviceProfile(deviceClass as NSString, ID, profileID)?.takeRetainedValue() {
 			self.init(internalPtr: aRet)
 		}
 		return nil
@@ -171,10 +174,10 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	
 	/// The data associated with the signature.
 	/// - parameter tag: signature of the tag to be retrieved 
-	public subscript (tag: String) -> NSData? {
+	public subscript (tag: String) -> Data? {
 		get {
-			if let data = ColorSyncProfileCopyTag(profile, tag)?.takeRetainedValue() {
-				return data
+			if let data = ColorSyncProfileCopyTag(profile, tag as NSString)?.takeRetainedValue() {
+				return data as Data
 			}
 			return nil
 		}
@@ -185,8 +188,8 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	/// - parameter signature: signature of the tag to be searched for
 	///
 	/// - returns: `true` if tag exists, or `false` if it does not.
-	public final func containsTag(signature: String) -> Bool {
-		return ColorSyncProfileContainsTag(profile, signature)
+	public final func containsTag(_ signature: String) -> Bool {
+		return ColorSyncProfileContainsTag(profile, signature as NSString)
 	}
 	
 	/// Returns MD5 digest for the profile calculated as defined by
@@ -194,8 +197,8 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	public final var MD5: ColorSyncMD5? {
 		let toRet = ColorSyncProfileGetMD5(profile)
 		var theMD5 = toRet
-		let toCheck = withUnsafePointer(&theMD5.digest) { (TheT) -> UnsafeBufferPointer<UInt64> in
-			let newErr = UnsafePointer<UInt64>(TheT)
+		let toCheck = withUnsafePointer(to: &theMD5.digest) { (TheT) -> UnsafeBufferPointer<UInt64> in
+			let newErr = UnsafeRawPointer(TheT).assumingMemoryBound(to: UInt64.self)
 			return UnsafeBufferPointer<UInt64>(start: newErr, count: 2)
 		}
 		for i in toCheck {
@@ -207,13 +210,13 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	}
 	
 	/// The URL of the profile, or `nil` on error.
-	public final var URL: NSURL? {
-		return ColorSyncProfileGetURL(profile, nil)?.takeUnretainedValue()
+	public final var URL: Foundation.URL? {
+		return ColorSyncProfileGetURL(profile, nil)?.takeUnretainedValue() as URL?
 	}
 	
 	/// `NSData` containing the header data in host endianess.
-	public var header: NSData? {
-		return ColorSyncProfileCopyHeader(profile)?.takeRetainedValue()
+	public var header: Data? {
+		return ColorSyncProfileCopyHeader(profile)?.takeRetainedValue() as Data?
 	}
 	
 	/// Estimates the gamma of the profile.
@@ -223,7 +226,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 		
 		if aRet == 0.0 {
 			guard let errStuff = errVal?.takeUnretainedValue() else {
-				throw CSErrors.UnwrappingError
+				throw CSErrors.unwrappingError
 			}
 			throw errStuff
 		}
@@ -244,22 +247,22 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	}
 	
 	/// Return the flattened data.
-	public final func rawData() throws -> NSData {
+	public final func rawData() throws -> Data {
 		var errVal: Unmanaged<CFError>?
 		guard let aDat = ColorSyncProfileCopyData(profile, &errVal)?.takeRetainedValue() else {
 			guard let errStuff = errVal?.takeUnretainedValue() else {
-				throw CSErrors.UnwrappingError
+				throw CSErrors.unwrappingError
 			}
 			throw errStuff
 		}
-		return aDat
+		return aDat as Data
 	}
 	
 	/// An utility function creating three tables of floats (redTable, greenTable, blueTable)
 	/// each of size `samplesPerChannel`, packed into contiguous memory contained in the `NSData`
 	/// to be returned from the `vcgt` tag of the profile (if `vcgt` tag exists in the profile).
-	public final func displayTransferTablesFromVCGT(inout samplesPerChannel: Int) -> NSData? {
-		return ColorSyncProfileCreateDisplayTransferTablesFromVCGT(profile, &samplesPerChannel)?.takeRetainedValue()
+	public final func displayTransferTablesFromVCGT(_ samplesPerChannel: inout Int) -> Data? {
+		return ColorSyncProfileCreateDisplayTransferTablesFromVCGT(profile, &samplesPerChannel)?.takeRetainedValue() as Data?
 	}
 	
 	/// Installs the profile
@@ -275,11 +278,11 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	/// as the directory path and file name will be created from the profile description tag, appended 
 	/// with the ".icc" extension.
 	/// - throws: on error.
-	public final func install(domain domain: String = kColorSyncProfileUserDomain.takeUnretainedValue() as String, subpath: String?) throws {
+	public final func install(domain: String = kColorSyncProfileUserDomain.takeUnretainedValue() as String, subpath: String? = nil) throws {
 		var errVal: Unmanaged<CFError>?
-		if !ColorSyncProfileInstall(profile, domain, subpath, &errVal) {
+		if !ColorSyncProfileInstall(profile, domain as NSString, subpath as NSString?, &errVal) {
 			guard let errStuff = errVal?.takeUnretainedValue() else {
-				throw CSErrors.UnwrappingError
+				throw CSErrors.unwrappingError
 			}
 			throw errStuff
 		}
@@ -293,7 +296,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 		var errVal: Unmanaged<CFError>?
 		if !ColorSyncProfileUninstall(profile, &errVal) {
 			guard let errStuff = errVal?.takeUnretainedValue() else {
-				throw CSErrors.UnwrappingError
+				throw CSErrors.unwrappingError
 			}
 			throw errStuff
 		}
@@ -326,7 +329,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 		
 		guard usable else {
 			guard let errors = errors?.takeUnretainedValue() else {
-				throw CSErrors.UnwrappingError
+				throw CSErrors.unwrappingError
 			}
 			throw errors
 		}
@@ -336,13 +339,13 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 
 /// Estimates the display gamma for the passed-in display.
 /// - parameter displayID: system-wide unique display ID (defined by IOKIt)
-public func estimateGamma(displayID displayID: Int32) throws -> Float {
+public func estimateGamma(displayID: Int32) throws -> Float {
 	var errVal: Unmanaged<CFError>?
 	let aRet = ColorSyncProfileEstimateGammaWithDisplayID(displayID, &errVal)
 	
 	guard aRet != 0.0 else {
 		guard let errStuff = errVal?.takeUnretainedValue() else {
-			throw CSErrors.UnwrappingError
+			throw CSErrors.unwrappingError
 		}
 		throw errStuff
 	}
@@ -359,19 +362,19 @@ public final class CSMutableProfile: CSProfile {
 		super.init(internalPtr: mutPtr)
 	}
 	
-	private override init(internalPtr: ColorSyncProfile) {
+	fileprivate override init(internalPtr: ColorSyncProfile) {
 		mutPtr = ColorSyncProfileCreateMutableCopy(internalPtr).takeRetainedValue()
 		super.init(internalPtr: mutPtr)
 	}
 	
-	/// `NSData` containing the header data in host endianess
-	override public var header: NSData? {
+	/// `Data` containing the header data in host endianess
+	override public var header: Data? {
 		get {
 			return super.header
 		}
 		set {
 			if let aHeader = newValue {
-				ColorSyncProfileSetHeader(mutPtr, aHeader)
+				ColorSyncProfileSetHeader(mutPtr, aHeader as NSData)
 			} else {
 				print("header was sent nil, not doing anything!")
 			}
@@ -379,18 +382,18 @@ public final class CSMutableProfile: CSProfile {
 	}
 
 	/// Removes a tag named `named`.
-	public func removeTag(named: String) {
-		ColorSyncProfileRemoveTag(mutPtr, named)
+	public func removeTag(_ named: String) {
+		ColorSyncProfileRemoveTag(mutPtr, named as NSString)
 	}
 	
 	/// The data associated with the signature.
-	override public subscript (tag: String) -> NSData? {
+	override public subscript (tag: String) -> Data? {
 		get {
 			return super[tag]
 		}
 		set {
 			if let data = newValue {
-				ColorSyncProfileSetTag(mutPtr, tag, data)
+				ColorSyncProfileSetTag(mutPtr, tag as NSString, data as NSData)
 			} else {
 				removeTag(tag)
 			}

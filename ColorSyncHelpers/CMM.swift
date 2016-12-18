@@ -9,16 +9,19 @@
 import Foundation
 import ApplicationServices
 
-private func cmmIterator(cmm: ColorSyncCMM!, userInfo: UnsafeMutablePointer<Void>) -> Bool {
-	let array = Unmanaged<NSMutableArray>.fromOpaque(COpaquePointer(userInfo)).takeUnretainedValue()
+private func cmmIterator(_ cmm: ColorSyncCMM?, userInfo: UnsafeMutableRawPointer?) -> Bool {
+	guard let userInfo = userInfo, let cmm = cmm else {
+		return false
+	}
+	let array = Unmanaged<NSMutableArray>.fromOpaque(userInfo).takeUnretainedValue()
 	
-	array.addObject(CSCMM(cmm: cmm))
+	array.add(CSCMM(cmm: cmm))
 	
 	return true
 }
 
 public final class CSCMM: CustomStringConvertible, CustomDebugStringConvertible {
-	let cmmInt: ColorSyncCMMRef
+	let cmmInt: ColorSyncCMM
 	
 	/// The system-supplied CMM
 	public static var appleCMM: CSCMM {
@@ -35,18 +38,18 @@ public final class CSCMM: CustomStringConvertible, CustomDebugStringConvertible 
 	public static func installedCMMs() -> [CSCMM] {
 		let cmms = NSMutableArray()
 		
-		ColorSyncIterateInstalledCMMs(cmmIterator, UnsafeMutablePointer<Void>(Unmanaged.passUnretained(cmms).toOpaque()))
+		ColorSyncIterateInstalledCMMs(cmmIterator, UnsafeMutableRawPointer(Unmanaged.passUnretained(cmms).toOpaque()))
 		
 		return cmms as NSArray as! [CSCMM]
 	}
 	
-	private init(cmm: ColorSyncCMM) {
+	fileprivate init(cmm: ColorSyncCMM) {
 		cmmInt = cmm
 	}
 	
 	/// Creates a CSCMM object from the supplied bundle.
-	public convenience init?(bundle: NSBundle) {
-		if let newBund = CFBundleCreate(kCFAllocatorDefault, bundle.bundleURL) {
+	public convenience init?(bundle: Bundle) {
+		if let newBund = CFBundleCreate(kCFAllocatorDefault, bundle.bundleURL as NSURL) {
 			self.init(bundle: newBund)
 		} else {
 			return nil
@@ -62,10 +65,10 @@ public final class CSCMM: CustomStringConvertible, CustomDebugStringConvertible 
 	}
 	
 	/// Will return `nil` for Apple's built-in CMM
-	public var bundle: NSBundle? {
+	public var bundle: Bundle? {
 		if let cfBundle = ColorSyncCMMGetBundle(cmmInt)?.takeUnretainedValue() {
-			let aURL: NSURL = CFBundleCopyBundleURL(cfBundle)
-			return NSBundle(URL: aURL)!
+			let aURL = CFBundleCopyBundleURL(cfBundle) as URL
+			return Bundle(url: aURL)!
 		}
 		return nil
 	}
