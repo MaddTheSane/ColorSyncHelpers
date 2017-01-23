@@ -197,16 +197,16 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	public final var MD5: ColorSyncMD5? {
 		let toRet = ColorSyncProfileGetMD5(profile)
 		var theMD5 = toRet
-		let toCheck = withUnsafePointer(to: &theMD5.digest) { (TheT) -> UnsafeBufferPointer<UInt64> in
-			let newErr = UnsafeRawPointer(TheT).assumingMemoryBound(to: UInt64.self)
-			return UnsafeBufferPointer<UInt64>(start: newErr, count: 2)
-		}
-		for i in toCheck {
-			if i != 0 {
-				return toRet
+		return withUnsafePointer(to: &theMD5.digest) { (TheT) -> ColorSyncMD5? in
+			let newErr = UnsafeRawPointer(TheT).assumingMemoryBound(to: UInt.self)
+			let toCheck = UnsafeBufferPointer<UInt>(start: newErr, count: MemoryLayout<ColorSyncMD5>.size / MemoryLayout<UInt>.size)
+			for i in toCheck {
+				if i != 0 {
+					return toRet
+				}
 			}
+			return nil
 		}
-		return nil
 	}
 	
 	/// The URL of the profile, or `nil` on error.
