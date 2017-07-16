@@ -47,8 +47,8 @@ public class CSDevice {
 	public struct Info {
 		public struct FactoryProfiles {
 			public struct Profile {
-				var profileURL: URL?
-				var modeDescription: String
+				public var profileURL: URL?
+				public var modeDescription: String
 			}
 			public var defaultProfileID: String
 			public var profiles: [String: Profile]
@@ -159,7 +159,7 @@ public class CSDevice {
 			ColorSyncIterateDeviceProfiles({ (aDict, refCon) -> Bool in
 				let array = Unmanaged<NSMutableArray>.fromOpaque(refCon!).takeUnretainedValue()
 				
-				let bDict = (aDict as! NSDictionary).copy()
+				let bDict = (aDict as NSDictionary!).copy()
 				array.add(bDict)
 				return true
 				}, UnsafeMutableRawPointer(Unmanaged.passUnretained(profs).toOpaque()))

@@ -74,7 +74,7 @@ class ColorSyncHelpersTests: XCTestCase {
 		print(cmms)
 		for cmm in cmms {
 			print(cmm.description)
-			print("\tBundle: \(cmm.bundle)")
+			print("\tBundle: \(cmm.bundle != nil ? String(describing: cmm.bundle!) : "(no bundle)")")
 			print("\tLocalized Name: \(cmm.localizedName)")
 			print("\tIdentifier: \(cmm.identifier)")
 		}
@@ -128,7 +128,7 @@ class ColorSyncHelpersTests: XCTestCase {
 					} else {
 						des = nilStr
 					}
-					print("Display Transfer Formula: \(des)")
+					print("\tDisplay Transfer Formula: \(des)")
 				}
 				do {
 					if let warnings = try profile.verify() {

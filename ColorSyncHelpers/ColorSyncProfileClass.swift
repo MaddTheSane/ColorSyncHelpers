@@ -333,7 +333,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 			}
 			throw errors
 		}
-		return warnings?.takeUnretainedValue() as? Error
+		return warnings?.takeUnretainedValue()
 	}
 }
 
