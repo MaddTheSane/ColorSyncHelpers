@@ -17,7 +17,7 @@ public class CSDevice {
 		case current
 	}
 	
-	public struct Profiles: CustomStringConvertible, CustomDebugStringConvertible {
+	public struct Profile: CustomStringConvertible, CustomDebugStringConvertible {
 		public enum DeviceClass: String {
 			case Camera = "cmra"
 			case Display = "mntr"
@@ -54,7 +54,7 @@ public class CSDevice {
 			public var profiles: [String: Profile]
 		}
 		
-		public var deviceClass: Profiles.DeviceClass
+		public var deviceClass: Profile.DeviceClass
 		public var deviceID: UUID
 		public var deviceDescription: String
 		public var factoryProfiles: FactoryProfiles
@@ -88,11 +88,11 @@ public class CSDevice {
 		return ColorSyncDeviceCopyDeviceInfo(deviceClass as NSString, identifier).takeRetainedValue() as NSDictionary as! [String: Any]
 	}
 	
-	public func info(deviceClass dc: Profiles.DeviceClass, identifier: UUID) -> Info {
+	public func info(deviceClass dc: Profile.DeviceClass, identifier: UUID) -> Info {
 		//Info
 		
 		var devInfo = copyDeviceInfo(dc.rawValue, identifier: CFUUIDCreateFromString(kCFAllocatorDefault, identifier.uuidString as NSString))
-		let devClass: Profiles.DeviceClass
+		let devClass: Profile.DeviceClass
 		let preDevClass = devInfo.removeValue(forKey: kColorSyncDeviceClass.takeUnretainedValue() as String) as! String
 		switch preDevClass {
 		case kColorSyncCameraDeviceClass.takeUnretainedValue() as NSString as String:
@@ -151,7 +151,7 @@ public class CSDevice {
 		return Info(deviceClass: devClass, deviceID: aUU, deviceDescription: devDes, factoryProfiles: fac, customProfiles: custProfs, userScope: userScope, hostScope: hostScope)
 	}
 	
-	public static func deviceInfos() -> [Profiles] {
+	public static func deviceInfos() -> [Profile] {
 		let profsArr: Array<[String: Any]>
 		do {
 			let profs = NSMutableArray()
@@ -167,9 +167,9 @@ public class CSDevice {
 			profsArr = profs as NSArray as! Array<[String: Any]>
 		}
 		
-		let devInfo = profsArr.map { (aDict) -> Profiles in
+		let devInfo = profsArr.map { (aDict) -> Profile in
 			var otherDict = aDict
-			let devClass: Profiles.DeviceClass
+			let devClass: Profile.DeviceClass
 			let preDevClass = otherDict.removeValue(forKey: kColorSyncDeviceClass.takeUnretainedValue() as String) as! String
 			switch preDevClass {
 			case kColorSyncCameraDeviceClass.takeUnretainedValue() as NSString as String:
@@ -198,7 +198,7 @@ public class CSDevice {
 			
 			let devNSID = UUID(uuidString: CFUUIDCreateString(kCFAllocatorDefault, devID) as String)!
 			
-			return Profiles(identifier: devNSID, deviceDescription: devDes, modeDescription: modeDes, profileID: profID, profileURL: profURL, extraEntries: otherDict, isFactory: isFactory, isDefault: isDefault, isCurrent: isCurrent, deviceClass: devClass)
+			return Profile(identifier: devNSID, deviceDescription: devDes, modeDescription: modeDes, profileID: profID, profileURL: profURL, extraEntries: otherDict, isFactory: isFactory, isDefault: isDefault, isCurrent: isCurrent, deviceClass: devClass)
 		}
 		
 		return devInfo

@@ -57,11 +57,11 @@ public final class CSCMM: CustomStringConvertible, CustomDebugStringConvertible 
 	}
 	
 	/// Creates a CSCMM object from the supplied bundle.
-	public init?(bundle: CFBundle) {
+	public convenience init?(bundle: CFBundle) {
 		guard let newCmm = ColorSyncCMMCreate(bundle)?.takeRetainedValue() else {
 			return nil
 		}
-		cmmInt = newCmm
+		self.init(cmm: newCmm)
 	}
 	
 	/// Will return `nil` for Apple's built-in CMM

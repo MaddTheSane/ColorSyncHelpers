@@ -95,9 +95,13 @@ class ColorSyncHelpersTests: XCTestCase {
 				des = dat?.description ?? nilStr
 				print("\tHeader: " + des)
 				}
-				//dat = try? profile.rawData()
-				//des = dat?.description ?? "nil"
-				//print("Raw Profile data: " + des)
+				do {
+					_ = try profile.rawData()
+					des = "present"
+				} catch {
+					des = "error: \(error)"
+				}
+				print("\tRaw Profile data: " + des)
 				do {
 				let gamma = try? profile.estimateGamma()
 				des = gamma?.description ?? nilStr
@@ -209,11 +213,15 @@ class ColorSyncHelpersTests: XCTestCase {
 		let data = validICCNSData
 		let copyrightTag = kColorSyncSigCopyrightTag.takeUnretainedValue() as String
 		
-		func testCopyrightTag(profile: CSProfile) {
+		func testCopyrightTag(profile: CSProfile, expected: Bool = true) {
 			if let copy = profile[copyrightTag] {
-				print(String(data: copy, encoding: String.Encoding.utf8) ?? "")
+				print("tag '\(copyrightTag)': " + (String(data: copy, encoding: String.Encoding.utf8) ?? ""))
 			} else {
-				print("No \"\(copyrightTag)\" tag!")
+				if expected {
+					XCTFail("No \"\(copyrightTag)\" tag!")
+				} else {
+					print("No \"\(copyrightTag)\" tag!")
+				}
 			}
 		}
 		
@@ -231,7 +239,7 @@ class ColorSyncHelpersTests: XCTestCase {
 			print(mutProfile.profile)
 			mutProfile[copyrightTag] = nil
 			print(mutProfile.profile)
-			testCopyrightTag(profile: mutProfile)
+			testCopyrightTag(profile: mutProfile, expected: false)
 			XCTAssertNil(mutProfile[copyrightTag])
 		} catch {
 			XCTFail("CSProfile failed, \(error)")
@@ -248,6 +256,7 @@ class ColorSyncHelpersTests: XCTestCase {
 			let aMut2 = try CSMutableProfile(data: data)
 			print(aMut2.profile)
 			aMut2.removeTag(kColorSyncSigCopyrightTag.takeUnretainedValue() as String)
+			_ = try aMut2.rawData()
 			print(aMut2.profile)
 		} catch {
 			XCTFail("CSMutableProfile failed, \(error)")
