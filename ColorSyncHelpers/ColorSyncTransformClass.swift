@@ -77,11 +77,11 @@ public final class CSTransform: CustomDebugStringConvertible {
 		let fromArr: [String: Any]
 			= [kColorSyncProfile.takeUnretainedValue() as String: from.profile,
 			   kColorSyncRenderingIntent.takeUnretainedValue() as String: kColorSyncRenderingIntentPerceptual.takeUnretainedValue() as NSString,
-			   kColorSyncTransformTag.takeUnretainedValue() as String:kColorSyncTransformDeviceToPCS.takeUnretainedValue() as NSString]
+			   kColorSyncTransformTag.takeUnretainedValue() as String: kColorSyncTransformDeviceToPCS.takeUnretainedValue() as NSString]
 		let toArr: [String: Any]
 			= [kColorSyncProfile.takeUnretainedValue() as String: to.profile,
 			   kColorSyncRenderingIntent.takeUnretainedValue() as String: kColorSyncRenderingIntentPerceptual.takeUnretainedValue() as NSString,
-			   kColorSyncTransformTag.takeUnretainedValue() as String:kColorSyncTransformPCSToDevice.takeUnretainedValue() as NSString]
+			   kColorSyncTransformTag.takeUnretainedValue() as String: kColorSyncTransformPCSToDevice.takeUnretainedValue() as NSString]
 
 		self.init(profileSequence: [fromArr, toArr], options: options)
 	}
@@ -151,24 +151,24 @@ public final class CSTransform: CustomDebugStringConvertible {
 	
 	/// gets the property of the specified key
 	/// - parameter key: `CFTypeRef` to be used as a key to identify the property
-	public func getProperty(forKey key: AnyObject, options: [String: Any]? = nil) -> AnyObject? {
+	public func getProperty(forKey key: AnyObject, options: [String: Any]? = nil) -> Any? {
 		return ColorSyncTransformCopyProperty(cstint, key, sanitize(options: options) as NSDictionary?)?.takeRetainedValue()
 	}
 	
 	/// Sets the property
 	/// - parameter key: `CFTypeRef` to be used as a key to identify the property
 	/// - parameter property: `CFTypeRef` to be set as the property
-	public func setProperty(key: AnyObject, property: AnyObject?) {
-		ColorSyncTransformSetProperty(cstint, key, property)
+	public func setProperty(key: AnyObject, property: Any?) {
+		ColorSyncTransformSetProperty(cstint, key, property as CFTypeRef?)
 	}
 	
 	/// Gets and sets the properties.
-	public subscript (key: AnyObject) -> AnyObject? {
+	public subscript (key: AnyObject) -> Any? {
 		get {
 			return getProperty(forKey: key)
 		}
 		set {
-			ColorSyncTransformSetProperty(cstint, key, newValue)
+			ColorSyncTransformSetProperty(cstint, key, newValue as CFTypeRef?)
 		}
 	}
 }

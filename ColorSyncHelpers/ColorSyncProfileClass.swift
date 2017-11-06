@@ -37,11 +37,11 @@ func sanitize(options: [String: Any]?) -> [String: Any]? {
 }
 
 /// Make sure we don't pass our own `CSProfile`, but the `ColorSyncProfileRef` the API expects.
-func sanitize(profileInfo profileSequence: [[String:Any]]) -> [[String:Any]] {
+func sanitize(profileInfo profileSequence: [[String: Any]]) -> [[String: Any]] {
 	let colorSyncProfKey = kColorSyncProfile.takeUnretainedValue() as String
 	// make sure we don't pass our own CSProfile, but the ColorSyncProfileRef the API expects
-	let filtered = profileSequence.map { (TheDict) -> [String:Any] in
-		var tmpDict: [String:Any] = TheDict
+	let filtered = profileSequence.map { (TheDict) -> [String: Any] in
+		var tmpDict: [String: Any] = TheDict
 		if let csProfile = tmpDict[colorSyncProfKey] as? CSProfile {
 			tmpDict[colorSyncProfKey] = csProfile.profile
 		}
@@ -63,7 +63,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 
 		ColorSyncIterateInstalledProfiles(profileIterate, nil, UnsafeMutableRawPointer(Unmanaged.passUnretained(profs).toOpaque()), &errVal);
 		
-		if let errVal = errVal?.takeUnretainedValue() {
+		if let errVal = errVal?.takeRetainedValue() {
 			throw errVal
 		}
 		
@@ -92,7 +92,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 		if let csVal = ColorSyncProfileCreate(data as NSData, &errVal)?.takeRetainedValue() {
 			self.init(internalPtr: csVal)
 		} else {
-			guard let errStuff = errVal?.takeUnretainedValue() else {
+			guard let errStuff = errVal?.takeRetainedValue() else {
 				throw CSErrors.unwrappingError
 			}
 			throw errStuff
@@ -105,7 +105,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 		if let csVal = ColorSyncProfileCreateWithURL(url as NSURL, &errVal)?.takeRetainedValue() {
 			self.init(internalPtr: csVal)
 		} else {
-			guard let errStuff = errVal?.takeUnretainedValue() else {
+			guard let errStuff = errVal?.takeRetainedValue() else {
 				throw CSErrors.unwrappingError
 			}
 			throw errStuff
@@ -225,7 +225,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 		let aRet = ColorSyncProfileEstimateGamma(profile, &errVal)
 		
 		if aRet == 0.0 {
-			guard let errStuff = errVal?.takeUnretainedValue() else {
+			guard let errStuff = errVal?.takeRetainedValue() else {
 				throw CSErrors.unwrappingError
 			}
 			throw errStuff
@@ -250,7 +250,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	public final func rawData() throws -> Data {
 		var errVal: Unmanaged<CFError>?
 		guard let aDat = ColorSyncProfileCopyData(profile, &errVal)?.takeRetainedValue() else {
-			guard let errStuff = errVal?.takeUnretainedValue() else {
+			guard let errStuff = errVal?.takeRetainedValue() else {
 				throw CSErrors.unwrappingError
 			}
 			throw errStuff
@@ -281,7 +281,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	public final func install(domain: String = kColorSyncProfileUserDomain.takeUnretainedValue() as String, subpath: String? = nil) throws {
 		var errVal: Unmanaged<CFError>?
 		if !ColorSyncProfileInstall(profile, domain as NSString, subpath as NSString?, &errVal) {
-			guard let errStuff = errVal?.takeUnretainedValue() else {
+			guard let errStuff = errVal?.takeRetainedValue() else {
 				throw CSErrors.unwrappingError
 			}
 			throw errStuff
@@ -295,7 +295,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	public final func uninstall() throws {
 		var errVal: Unmanaged<CFError>?
 		if !ColorSyncProfileUninstall(profile, &errVal) {
-			guard let errStuff = errVal?.takeUnretainedValue() else {
+			guard let errStuff = errVal?.takeRetainedValue() else {
 				throw CSErrors.unwrappingError
 			}
 			throw errStuff
@@ -328,12 +328,12 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 		let usable = ColorSyncProfileVerify(profile, &errors, &warnings)
 		
 		guard usable else {
-			guard let errors = errors?.takeUnretainedValue() else {
+			guard let errors = errors?.takeRetainedValue() else {
 				throw CSErrors.unwrappingError
 			}
 			throw errors
 		}
-		return warnings?.takeUnretainedValue()
+		return warnings?.takeRetainedValue()
 	}
 }
 
@@ -344,7 +344,7 @@ public func estimateGamma(displayID: Int32) throws -> Float {
 	let aRet = ColorSyncProfileEstimateGammaWithDisplayID(displayID, &errVal)
 	
 	guard aRet != 0.0 else {
-		guard let errStuff = errVal?.takeUnretainedValue() else {
+		guard let errStuff = errVal?.takeRetainedValue() else {
 			throw CSErrors.unwrappingError
 		}
 		throw errStuff
