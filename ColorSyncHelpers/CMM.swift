@@ -25,7 +25,7 @@ public final class CSCMM: CustomStringConvertible, CustomDebugStringConvertible 
 	
 	/// The system-supplied CMM
 	public static var appleCMM: CSCMM {
-		let cmms = installedCMMs()
+		let cmms = installedCMMs
 		for cmm in cmms {
 			if cmm.bundle == nil {
 				return cmm
@@ -35,7 +35,7 @@ public final class CSCMM: CustomStringConvertible, CustomDebugStringConvertible 
 	}
 	
 	/// Returns all of the available CMMs.
-	public static func installedCMMs() -> [CSCMM] {
+	public static var installedCMMs: [CSCMM] {
 		let cmms = NSMutableArray()
 		
 		ColorSyncIterateInstalledCMMs(cmmIterator, UnsafeMutableRawPointer(Unmanaged.passUnretained(cmms).toOpaque()))

@@ -233,7 +233,13 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	}
 	
 	/// The URL of the profile, or `nil` on error.
+	@available(*, deprecated, renamed: "url")
 	public final var URL: Foundation.URL? {
+		return url
+	}
+	
+	/// The URL of the profile, or `nil` on error.
+	public final var url: Foundation.URL? {
 		return ColorSyncProfileGetURL(profile, nil)?.takeUnretainedValue() as URL?
 	}
 	
