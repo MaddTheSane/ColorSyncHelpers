@@ -152,8 +152,7 @@ public class CSDevice {
 	}
 	
 	public static func deviceInfos() -> [Profile] {
-		let profsArr: Array<[String: Any]>
-		do {
+		let profsArr: Array<[String: Any]> = {
 			let profs = NSMutableArray()
 			
 			ColorSyncIterateDeviceProfiles({ (aDict, refCon) -> Bool in
@@ -164,8 +163,8 @@ public class CSDevice {
 				return true
 				}, UnsafeMutableRawPointer(Unmanaged.passUnretained(profs).toOpaque()))
 			
-			profsArr = profs as NSArray as! Array<[String: Any]>
-		}
+			return profs as NSArray as! Array<[String: Any]>
+		}()
 		
 		let devInfo = profsArr.map { (aDict) -> Profile in
 			var otherDict = aDict
