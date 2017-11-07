@@ -102,7 +102,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	}
 	
 	/// Creates a profile from ICC data.
-	/// - parameter data: profile data
+	/// - parameter data: Profile data.
 	public convenience init(data: Data) throws {
 		var errVal: Unmanaged<CFError>?
 		if let csVal = ColorSyncProfileCreate(data as NSData, &errVal)?.takeRetainedValue() {
@@ -416,6 +416,7 @@ public final class CSMutableProfile: CSProfile {
 	}
 	
 	/// The data associated with the signature.
+	/// - parameter tag: signature of the tag to be retrieved
 	override public subscript (tag: String) -> Data? {
 		get {
 			return super[tag]

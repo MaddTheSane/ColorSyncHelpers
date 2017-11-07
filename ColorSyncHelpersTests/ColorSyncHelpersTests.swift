@@ -319,4 +319,11 @@ class ColorSyncHelpersTests: XCTestCase {
 			XCTFail("Error `\(error)` encountered")
 		}
 	}
+	
+	func testDevices() {
+		let devInfo = CSDevice.deviceInfos()
+		for di in devInfo {
+			print(di)
+		}
+	}
 }

@@ -10,7 +10,8 @@ import Foundation
 import ApplicationServices
 
 
-public class CSDevice {
+public struct CSDevice {
+	private init() {}
 	
 	public enum Scope {
 		case `any`
@@ -34,7 +35,9 @@ public class CSDevice {
 		public var isDefault: Bool
 		public var isCurrent: Bool
 		public var deviceClass: DeviceClass
-		
+		public var userScope: Scope
+		public var hostScope: Scope
+
 		public var description: String {
 			return "\(deviceDescription), \(modeDescription) (\(deviceClass))"
 		}
@@ -84,11 +87,11 @@ public class CSDevice {
 	///         kColorSyncDeviceUserScope              {kCFPreferencesAnyUser or kCFPreferencesCurrentUser}
 	///         kColorSyncDeviceHostScope              {kCFPreferencesAnyHost or kCFPreferencesCurrentHost}
 	///     >>
-	private func copyDeviceInfo(_ deviceClass: String, identifier: CFUUID) -> [String: Any] {
+	private static func copyDeviceInfo(_ deviceClass: String, identifier: CFUUID) -> [String: Any] {
 		return ColorSyncDeviceCopyDeviceInfo(deviceClass as NSString, identifier).takeRetainedValue() as NSDictionary as! [String: Any]
 	}
 	
-	public func info(deviceClass dc: Profile.DeviceClass, identifier: UUID) -> Info {
+	public static func info(deviceClass dc: Profile.DeviceClass, identifier: UUID) -> Info {
 		//Info
 		
 		var devInfo = copyDeviceInfo(dc.rawValue, identifier: CFUUIDCreateFromString(kCFAllocatorDefault, identifier.uuidString as NSString))
@@ -114,8 +117,8 @@ public class CSDevice {
 		let devDes = devInfo.removeValue(forKey: kColorSyncDeviceDescription.takeUnretainedValue() as String) as! String
 		var factProf = devInfo.removeValue(forKey: kColorSyncDeviceDescription.takeUnretainedValue() as String) as! NSDictionary as! [String: Any]
 		let defaultID = factProf.removeValue(forKey: kColorSyncDeviceDefaultProfileID.takeUnretainedValue() as String) as! String
-		var ahi: [String:CSDevice.Info.FactoryProfiles.Profile] = [:]
-		for (tmpID, dict) in factProf as! [String:[String: Any]] {
+		var ahi: [String: CSDevice.Info.FactoryProfiles.Profile] = [:]
+		for (tmpID, dict) in factProf as! [String: [String: Any]] {
 			//var listDir: [CSDevice.Info.FactoryProfiles.Profile] = []
 			
 			ahi[tmpID] = Info.FactoryProfiles.Profile(profileURL: (dict[kColorSyncDeviceProfileURL.takeUnretainedValue() as String]) as? URL, modeDescription: (dict[kColorSyncDeviceModeDescription.takeUnretainedValue() as String]) as! String)
@@ -194,10 +197,26 @@ public class CSDevice {
 			let isFactory = otherDict.removeValue(forKey: kColorSyncDeviceProfileIsFactory.takeUnretainedValue() as String) as! Bool
 			let isDefault = otherDict.removeValue(forKey: kColorSyncDeviceProfileIsDefault.takeUnretainedValue() as String) as! Bool
 			let isCurrent = otherDict.removeValue(forKey: kColorSyncDeviceProfileIsCurrent.takeUnretainedValue() as String) as! Bool
+			let userScopeStr = otherDict.removeValue(forKey: kColorSyncDeviceUserScope.takeUnretainedValue() as String) as! NSString
+			let hostScopeStr = otherDict.removeValue(forKey: kColorSyncDeviceHostScope.takeUnretainedValue() as String) as! NSString
+			
+			let userScope: Scope
+			let hostScope: Scope
+			if userScopeStr == kCFPreferencesAnyUser {
+				userScope = .any
+			} else {
+				userScope = .current
+			}
+			
+			if hostScopeStr == kCFPreferencesAnyHost {
+				hostScope = .any
+			} else {
+				hostScope = .current
+			}
 			
 			let devNSID = UUID(uuidString: CFUUIDCreateString(kCFAllocatorDefault, devID) as String)!
 			
-			return Profile(identifier: devNSID, deviceDescription: devDes, modeDescription: modeDes, profileID: profID, profileURL: profURL, extraEntries: otherDict, isFactory: isFactory, isDefault: isDefault, isCurrent: isCurrent, deviceClass: devClass)
+			return Profile(identifier: devNSID, deviceDescription: devDes, modeDescription: modeDes, profileID: profID, profileURL: profURL, extraEntries: otherDict, isFactory: isFactory, isDefault: isDefault, isCurrent: isCurrent, deviceClass: devClass, userScope: userScope, hostScope: hostScope)
 		}
 		
 		return devInfo
