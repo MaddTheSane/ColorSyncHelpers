@@ -113,8 +113,8 @@ class ColorSyncHelpersTests: XCTestCase {
 				print("\tURL: \(des)")
 				}
 				do {
-				if let md5 = profile.MD5 {
-					des = "\(md5)"
+				if let md5 = profile.md5 {
+					des = "\(md5.digest)"
 				} else {
 					des = nilStr
 				}
@@ -138,7 +138,7 @@ class ColorSyncHelpersTests: XCTestCase {
 					if let warnings = try profile.verify() {
 						des = "Warnings: \(warnings)"
 					} else {
-						des = "no warnings"
+						des = "No warnings"
 					}
 				} catch {
 					des = "Invalid: \(error)"
@@ -271,7 +271,7 @@ class ColorSyncHelpersTests: XCTestCase {
 			return
 		}
 
-		let md5Data = profile.MD5
+		let md5Data = profile.md5
 		
 		XCTAssertNotNil(md5Data)
 	}
@@ -294,5 +294,17 @@ class ColorSyncHelpersTests: XCTestCase {
 			print(error)
 		}
 		XCTFail("What did we uninstall!?")
+	}
+	
+	func testIterateProfiles() {
+		do {
+			try CSProfile.iterateInstalledProfiles(using: { (anObj) -> Bool in
+				//print(anObj)
+				
+				return true
+			})
+		} catch {
+			XCTFail("Error `\(error)` encountered")
+		}
 	}
 }

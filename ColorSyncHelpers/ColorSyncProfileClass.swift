@@ -59,15 +59,31 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	/// Returns all of the installed profiles.
 	public static func allProfiles() throws -> [CSProfile] {
 		let profs = NSMutableArray()
-		var errVal: Unmanaged<CFError>?
 
-		ColorSyncIterateInstalledProfiles(profileIterate, nil, UnsafeMutableRawPointer(Unmanaged.passUnretained(profs).toOpaque()), &errVal);
+		try iterateInstalledProfiles(using: profileIterate, userInfo: UnsafeMutableRawPointer(Unmanaged.passUnretained(profs).toOpaque()))
+		
+		return profs as NSArray as! [CSProfile]
+	}
+	
+	public static func iterateInstalledProfiles(using callback: @escaping ColorSyncProfileIterateCallback, userInfo: UnsafeMutableRawPointer? = nil, seed: UnsafeMutablePointer<UInt32>? = nil) throws {
+		var errVal: Unmanaged<CFError>?
+		
+		ColorSyncIterateInstalledProfiles(callback, seed, userInfo, &errVal)
 		
 		if let errVal = errVal?.takeRetainedValue() {
 			throw errVal
 		}
+	}
+
+	public static func iterateInstalledProfiles(using block: @escaping ([String: Any]) -> Bool, seed: UnsafeMutablePointer<UInt32>? = nil) throws {
+		let callback2 = block as AnyObject
+		let callback3 = Unmanaged<AnyObject>.passUnretained(callback2)
 		
-		return profs as NSArray as! [CSProfile]
+		try iterateInstalledProfiles(using: { (aDict, rawPoint) -> Bool in
+			let callback4 = Unmanaged<AnyObject>.fromOpaque(rawPoint!)
+			let callback5 = callback4.takeUnretainedValue() as! ([String: Any]) -> Bool
+			return callback5(aDict as! [String: Any])
+		}, userInfo: callback3.toOpaque(), seed: seed)
 	}
 	
 	convenience init?(iterateData: [String: Any]) {
@@ -194,7 +210,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	
 	/// Returns MD5 digest for the profile calculated as defined by
 	/// ICC specification, or `nil` in case of failure.
-	public final var MD5: ColorSyncMD5? {
+	public final var md5: ColorSyncMD5? {
 		let toRet = ColorSyncProfileGetMD5(profile)
 		var theMD5 = toRet
 		return withUnsafePointer(to: &theMD5.digest) { (TheT) -> ColorSyncMD5? in
@@ -207,6 +223,13 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 			}
 			return nil
 		}
+	}
+	
+	/// Returns MD5 digest for the profile calculated as defined by
+	/// ICC specification, or `nil` in case of failure.
+	@available(*, deprecated, renamed: "md5")
+	public final var MD5: ColorSyncMD5? {
+		return md5
 	}
 	
 	/// The URL of the profile, or `nil` on error.
