@@ -109,7 +109,7 @@ class ColorSyncHelpersTests: XCTestCase {
     }
 	
     func testBasicGetters() {
-		let cmms = CSCMM.installedCMMs()
+		let cmms = CSCMM.installedCMMs
 		let nilStr = "(nil)"
 		print("CMMs:")
 		print(cmms)
