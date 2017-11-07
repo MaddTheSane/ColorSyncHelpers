@@ -112,7 +112,6 @@ class ColorSyncHelpersTests: XCTestCase {
 		let cmms = CSCMM.installedCMMs
 		let nilStr = "(nil)"
 		print("CMMs:")
-		print(cmms)
 		for cmm in cmms {
 			print(cmm.description)
 			print("\tBundle: \(cmm.bundle != nil ? String(describing: cmm.bundle!) : "(no bundle)")")
