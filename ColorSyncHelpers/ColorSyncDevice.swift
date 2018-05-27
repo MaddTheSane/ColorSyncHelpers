@@ -20,10 +20,10 @@ public struct CSDevice {
 	
 	public struct Profile: CustomStringConvertible, CustomDebugStringConvertible {
 		public enum DeviceClass: String {
-			case Camera = "cmra"
-			case Display = "mntr"
-			case Printer = "prtr"
-			case Scanner = "scnr"
+			case camera = "cmra"
+			case display = "mntr"
+			case printer = "prtr"
+			case scanner = "scnr"
 		}
 		public var identifier: UUID
 		public var deviceDescription: String
@@ -87,36 +87,45 @@ public struct CSDevice {
 	///         kColorSyncDeviceUserScope              {kCFPreferencesAnyUser or kCFPreferencesCurrentUser}
 	///         kColorSyncDeviceHostScope              {kCFPreferencesAnyHost or kCFPreferencesCurrentHost}
 	///     >>
-	private static func copyDeviceInfo(_ deviceClass: String, identifier: CFUUID) -> [String: Any] {
+	private static func copyDeviceInfo(withClass deviceClass: String, identifier: CFUUID) -> [String: Any] {
 		return ColorSyncDeviceCopyDeviceInfo(deviceClass as NSString, identifier).takeRetainedValue() as NSDictionary as! [String: Any]
 	}
 	
+	@available(*, renamed: "info(for:identifier:)")
 	public static func info(deviceClass dc: Profile.DeviceClass, identifier: UUID) -> Info {
+		return info(for: dc, identifier: identifier)!
+	}
+	
+	public static func info(for dc: Profile.DeviceClass, identifier: UUID) -> Info? {
 		//Info
 		
-		var devInfo = copyDeviceInfo(dc.rawValue, identifier: CFUUIDCreateFromString(kCFAllocatorDefault, identifier.uuidString as NSString))
+		var devInfo = copyDeviceInfo(withClass: dc.rawValue, identifier: CFUUIDCreateFromString(kCFAllocatorDefault, identifier.uuidString as NSString))
 		let devClass: Profile.DeviceClass
 		let preDevClass = devInfo.removeValue(forKey: kColorSyncDeviceClass.takeUnretainedValue() as String) as! String
 		switch preDevClass {
 		case kColorSyncCameraDeviceClass.takeUnretainedValue() as NSString as String:
-			devClass = .Camera
+			devClass = .camera
 			
 		case kColorSyncDisplayDeviceClass.takeUnretainedValue() as NSString as String:
-			devClass = .Display
+			devClass = .display
 			
 		case kColorSyncPrinterDeviceClass.takeUnretainedValue() as NSString as String:
-			devClass = .Printer
+			devClass = .printer
 			
 		case kColorSyncScannerDeviceClass.takeUnretainedValue() as NSString as String:
-			devClass = .Scanner
+			devClass = .scanner
 			
 		default:
-			fatalError("Unknown device class \(preDevClass)")
+			print("Unknown device class \(preDevClass)")
+			return nil
 		}
-		let devID = devInfo.removeValue(forKey: kColorSyncDeviceID.takeUnretainedValue() as String) as! CFUUID
-		let devDes = devInfo.removeValue(forKey: kColorSyncDeviceDescription.takeUnretainedValue() as String) as! String
-		var factProf = devInfo.removeValue(forKey: kColorSyncDeviceDescription.takeUnretainedValue() as String) as! NSDictionary as! [String: Any]
-		let defaultID = factProf.removeValue(forKey: kColorSyncDeviceDefaultProfileID.takeUnretainedValue() as String) as! String
+		guard let devIDC = devInfo.removeValue(forKey: kColorSyncDeviceID.takeUnretainedValue() as String) as CFTypeRef?,
+		let devDes = devInfo.removeValue(forKey: kColorSyncDeviceDescription.takeUnretainedValue() as String) as? String,
+		var factProf = devInfo.removeValue(forKey: kColorSyncDeviceDescription.takeUnretainedValue() as String) as? NSDictionary as? [String: Any],
+		let defaultID = factProf.removeValue(forKey: kColorSyncDeviceDefaultProfileID.takeUnretainedValue() as String) as? String else {
+			return nil
+		}
+		let devID = devIDC as! CFUUID
 		var ahi: [String: CSDevice.Info.FactoryProfiles.Profile] = [:]
 		for (tmpID, dict) in factProf as! [String: [String: Any]] {
 			//var listDir: [CSDevice.Info.FactoryProfiles.Profile] = []
@@ -169,36 +178,40 @@ public struct CSDevice {
 			return profs as NSArray as! Array<[String: Any]>
 		}()
 		
-		let devInfo = profsArr.map { (aDict) -> Profile in
+		let devInfo = profsArr.map { (aDict) -> Profile? in
 			var otherDict = aDict
 			let devClass: Profile.DeviceClass
 			let preDevClass = otherDict.removeValue(forKey: kColorSyncDeviceClass.takeUnretainedValue() as String) as! String
 			switch preDevClass {
 			case kColorSyncCameraDeviceClass.takeUnretainedValue() as NSString as String:
-				devClass = .Camera
+				devClass = .camera
 				
 			case kColorSyncDisplayDeviceClass.takeUnretainedValue() as NSString as String:
-				devClass = .Display
+				devClass = .display
 				
 			case kColorSyncPrinterDeviceClass.takeUnretainedValue() as NSString as String:
-				devClass = .Printer
+				devClass = .printer
 				
 			case kColorSyncScannerDeviceClass.takeUnretainedValue() as NSString as String:
-				devClass = .Scanner
+				devClass = .scanner
 				
 			default:
-				fatalError("Unknown device class \(preDevClass)")
+				return nil
 			}
-			let devID = otherDict.removeValue(forKey: kColorSyncDeviceID.takeUnretainedValue() as String) as! CFUUID
-			let profID = otherDict.removeValue(forKey: kColorSyncDeviceProfileID.takeUnretainedValue() as String) as! String
-			let profURL = otherDict.removeValue(forKey: kColorSyncDeviceProfileURL.takeUnretainedValue() as String) as! URL
-			let devDes = otherDict.removeValue(forKey: kColorSyncDeviceDescription.takeUnretainedValue() as String) as! String
-			let modeDes = otherDict.removeValue(forKey: kColorSyncDeviceModeDescription.takeUnretainedValue() as String) as! String
-			let isFactory = otherDict.removeValue(forKey: kColorSyncDeviceProfileIsFactory.takeUnretainedValue() as String) as! Bool
-			let isDefault = otherDict.removeValue(forKey: kColorSyncDeviceProfileIsDefault.takeUnretainedValue() as String) as! Bool
-			let isCurrent = otherDict.removeValue(forKey: kColorSyncDeviceProfileIsCurrent.takeUnretainedValue() as String) as! Bool
-			let userScopeStr = otherDict.removeValue(forKey: kColorSyncDeviceUserScope.takeUnretainedValue() as String) as! NSString
-			let hostScopeStr = otherDict.removeValue(forKey: kColorSyncDeviceHostScope.takeUnretainedValue() as String) as! NSString
+			guard let devIDC = otherDict.removeValue(forKey: kColorSyncDeviceID.takeUnretainedValue() as String) as CFTypeRef?,
+				CFGetTypeID(devIDC) == CFUUIDGetTypeID(),
+			let profID = otherDict.removeValue(forKey: kColorSyncDeviceProfileID.takeUnretainedValue() as String) as? String,
+			let profURL = otherDict.removeValue(forKey: kColorSyncDeviceProfileURL.takeUnretainedValue() as String) as? URL,
+			let devDes = otherDict.removeValue(forKey: kColorSyncDeviceDescription.takeUnretainedValue() as String) as? String,
+			let modeDes = otherDict.removeValue(forKey: kColorSyncDeviceModeDescription.takeUnretainedValue() as String) as? String,
+			let isFactory = otherDict.removeValue(forKey: kColorSyncDeviceProfileIsFactory.takeUnretainedValue() as String) as? Bool,
+			let isDefault = otherDict.removeValue(forKey: kColorSyncDeviceProfileIsDefault.takeUnretainedValue() as String) as? Bool,
+			let isCurrent = otherDict.removeValue(forKey: kColorSyncDeviceProfileIsCurrent.takeUnretainedValue() as String) as? Bool,
+			let userScopeStr = otherDict.removeValue(forKey: kColorSyncDeviceUserScope.takeUnretainedValue() as String) as? NSString,
+			let hostScopeStr = otherDict.removeValue(forKey: kColorSyncDeviceHostScope.takeUnretainedValue() as String) as? NSString else {
+				return nil
+			}
+			let devID = devIDC as! CFUUID
 			
 			let userScope: Scope
 			let hostScope: Scope
@@ -219,6 +232,6 @@ public struct CSDevice {
 			return Profile(identifier: devNSID, deviceDescription: devDes, modeDescription: modeDes, profileID: profID, profileURL: profURL, extraEntries: otherDict, isFactory: isFactory, isDefault: isDefault, isCurrent: isCurrent, deviceClass: devClass, userScope: userScope, hostScope: hostScope)
 		}
 		
-		return devInfo
+		return devInfo.compactMap({ $0 })
 	}
 }
