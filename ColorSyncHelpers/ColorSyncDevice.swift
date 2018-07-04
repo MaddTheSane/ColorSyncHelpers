@@ -88,7 +88,7 @@ public struct CSDevice {
 	///         kColorSyncDeviceHostScope              {kCFPreferencesAnyHost or kCFPreferencesCurrentHost}
 	///     >>
 	private static func copyDeviceInfo(withClass deviceClass: String, identifier: CFUUID) -> [String: Any] {
-		return ColorSyncDeviceCopyDeviceInfo(deviceClass as NSString, identifier).takeRetainedValue() as NSDictionary as! [String: Any]
+		return ColorSyncDeviceCopyDeviceInfo(deviceClass as NSString, identifier)! as NSDictionary as! [String: Any]
 	}
 	
 	@available(*, renamed: "info(for:identifier:)")

@@ -102,7 +102,7 @@ public final class CSTransform: CustomDebugStringConvertible {
 	/// (e.g. preferred CMM, quality, etc…) It can also contain custom options that are CMM specific.
 	/// - returns: A valid `CSTransform`, or `nil` in case of failure
 	public init?(profileSequence: [[String:Any]], options: [String:Any]? = nil) {
-		guard let tmpTrans = ColorSyncTransformCreate(sanitize(profileInfo: profileSequence) as NSArray, sanitize(options: options) as NSDictionary?)?.takeRetainedValue() else {
+		guard let tmpTrans = ColorSyncTransformCreate(sanitize(profileInfo: profileSequence) as NSArray, sanitize(options: options) as NSDictionary?) else {
 			return nil
 		}
 		cstint = tmpTrans
@@ -152,7 +152,7 @@ public final class CSTransform: CustomDebugStringConvertible {
 	/// gets the property of the specified key
 	/// - parameter key: `CFTypeRef` to be used as a key to identify the property
 	public func getProperty(forKey key: AnyObject, options: [String: Any]? = nil) -> Any? {
-		return ColorSyncTransformCopyProperty(cstint, key, sanitize(options: options) as NSDictionary?)?.takeRetainedValue()
+		return ColorSyncTransformCopyProperty(cstint, key, sanitize(options: options) as NSDictionary?)
 	}
 	
 	/// Sets the property
