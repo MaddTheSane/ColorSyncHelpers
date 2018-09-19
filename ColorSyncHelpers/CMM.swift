@@ -9,7 +9,10 @@
 import Foundation
 import ApplicationServices
 
-private func cmmIterator(_ cmm: ColorSyncCMM, userInfo: UnsafeMutableRawPointer) -> Bool {
+private func cmmIterator(_ cmm: ColorSyncCMM?, userInfo: UnsafeMutableRawPointer?) -> Bool {
+	guard let userInfo = userInfo, let cmm = cmm else {
+		return false
+	}
 	let array = Unmanaged<NSMutableArray>.fromOpaque(userInfo).takeUnretainedValue()
 	
 	array.add(CSCMM(cmm: cmm))
@@ -55,7 +58,7 @@ public final class CSCMM: CustomStringConvertible, CustomDebugStringConvertible 
 	
 	/// Creates a CSCMM object from the supplied bundle.
 	public convenience init?(bundle: CFBundle) {
-		guard let newCmm = ColorSyncCMMCreate(bundle) else {
+		guard let newCmm = ColorSyncCMMCreate(bundle)?.takeRetainedValue() else {
 			return nil
 		}
 		self.init(cmm: newCmm)
@@ -63,7 +66,7 @@ public final class CSCMM: CustomStringConvertible, CustomDebugStringConvertible 
 	
 	/// Will return `nil` for Apple's built-in CMM
 	public var bundle: Bundle? {
-		if let cfBundle = ColorSyncCMMGetBundle(cmmInt) {
+		if let cfBundle = ColorSyncCMMGetBundle(cmmInt)?.takeUnretainedValue() {
 			let aURL = CFBundleCopyBundleURL(cfBundle) as URL
 			return Bundle(url: aURL)!
 		}
@@ -72,12 +75,12 @@ public final class CSCMM: CustomStringConvertible, CustomDebugStringConvertible 
 	
 	/// Returns the localized name of the ColorSync module
 	public var localizedName: String {
-		return ColorSyncCMMCopyLocalizedName(cmmInt)! as String
+		return ColorSyncCMMCopyLocalizedName(cmmInt)!.takeRetainedValue() as String
 	}
 	
 	/// Returns the identifier of the ColorSync module
 	public var identifier: String {
-		return ColorSyncCMMCopyCMMIdentifier(cmmInt)! as String
+		return ColorSyncCMMCopyCMMIdentifier(cmmInt)!.takeRetainedValue() as String
 	}
 	
 	public var description: String {
