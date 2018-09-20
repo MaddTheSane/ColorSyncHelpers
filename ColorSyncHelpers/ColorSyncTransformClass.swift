@@ -19,6 +19,7 @@ public final class CSTransform: CustomDebugStringConvertible {
 	public typealias Depth = ColorSyncDataDepth
 	
 	/// The data layout of the data that will be read/written by the
+	/// transform.
 	public struct Layout: OptionSet {
 		public let rawValue: UInt32
 		public init(rawValue: UInt32) {
