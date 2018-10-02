@@ -12,7 +12,7 @@ import ApplicationServices
 extension ColorSyncTransform {
 	/// The color depth of the data.
 	public typealias Depth = ColorSyncDataDepth
-
+	
 	/// The data layout of the data that will be read/written by the
 	/// transform.
 	public typealias Layout = CSTransform.Layout
@@ -33,7 +33,19 @@ extension ColorSyncTransform {
 	public func transform(width: Int, height: Int, dst: UnsafeMutableRawPointer, dstDepth: Depth, dstLayout: Layout, dstBytesPerRow: Int, src: UnsafeRawPointer, srcDepth: Depth, srcLayout: Layout, srcBytesPerRow: Int, options: [String: Any]? = nil) -> Bool {
 		return ColorSyncTransformConvert(self, width, height, dst, dstDepth, dstLayout.rawValue, dstBytesPerRow, src, srcDepth, srcLayout.rawValue, srcBytesPerRow, sanitize(options: options) as NSDictionary?)
 	}
-
+	
+	/// Transform the data from the source color space to the destination.
+	/// - parameter width: width of the image in pixels
+	/// - parameter height: height of the image in pixels
+	/// - parameter destination: information about the destination data, including a pointer to the destination where the results will be written.
+	/// - parameter source: information about the data to be converted.
+	/// - parameter options: additional options. Default is `nil`.
+	/// - returns: `true` if conversion was successful or `false` otherwise.
+	public func transform(width: Int, height: Int, destination: (data: UnsafeMutableRawPointer, depth: Depth, layout: Layout, bytesPerRow: Int), source: (data: UnsafeRawPointer, depth: Depth, layout: Layout, bytesPerRow: Int), options: [String: Any]? = nil) -> Bool {
+		
+		return transform(width: width, height: height, dst: destination.data, dstDepth: destination.depth, dstLayout: destination.layout, dstBytesPerRow: destination.bytesPerRow, src: source.data, srcDepth: source.depth, srcLayout: source.layout, srcBytesPerRow: source.bytesPerRow, options: options)
+	}
+	
 	/// gets the property of the specified key
 	/// - parameter key: `CFTypeRef` to be used as a key to identify the property
 	public func getProperty(forKey key: AnyObject, options: [String: Any]? = nil) -> Any? {
