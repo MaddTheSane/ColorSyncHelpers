@@ -9,9 +9,9 @@
 import Foundation
 import ApplicationServices
 
-extension ColorSyncCMM {
+public extension ColorSyncCMM {
 	/// Will return `nil` for Apple's built-in CMM
-	public var bundle: Bundle? {
+	@inlinable var bundle: Bundle? {
 		if let cfBundle = ColorSyncCMMGetBundle(self)?.takeUnretainedValue() {
 			let aURL = CFBundleCopyBundleURL(cfBundle) as URL
 			return Bundle(url: aURL)!
@@ -20,12 +20,12 @@ extension ColorSyncCMM {
 	}
 	
 	/// Returns the localized name of the ColorSync module
-	public var localizedName: String {
+	@inlinable var localizedName: String {
 		return ColorSyncCMMCopyLocalizedName(self)!.takeRetainedValue() as String
 	}
 	
 	/// Returns the identifier of the ColorSync module
-	public var identifier: String {
+	@inlinable var identifier: String {
 		return ColorSyncCMMCopyCMMIdentifier(self)!.takeRetainedValue() as String
 	}
 }

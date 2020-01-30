@@ -60,7 +60,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	public static func allProfiles() throws -> [CSProfile] {
 		let profs = NSMutableArray()
 
-		try iterateInstalledProfiles(using: profileIterate, userInfo: UnsafeMutableRawPointer(Unmanaged.passUnretained(profs).toOpaque()))
+		try iterateInstalledProfiles(using: profileIterate, userInfo: Unmanaged.passUnretained(profs).toOpaque())
 		
 		return profs as NSArray as! [CSProfile]
 	}

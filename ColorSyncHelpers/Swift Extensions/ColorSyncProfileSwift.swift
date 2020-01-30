@@ -9,10 +9,10 @@
 import Foundation
 import ApplicationServices
 
-extension ColorSyncProfile {
+public extension ColorSyncProfile {
 	/// The data associated with the signature.
 	/// - parameter tag: signature of the tag to be retrieved
-	public subscript (tag: String) -> Data? {
+	@inlinable subscript (tag: String) -> Data? {
 		get {
 			if let data = ColorSyncProfileCopyTag(self, tag as NSString)?.takeRetainedValue() {
 				return data as Data
@@ -26,13 +26,13 @@ extension ColorSyncProfile {
 	/// - parameter signature: signature of the tag to be searched for
 	///
 	/// - returns: `true` if tag exists, or `false` if it does not.
-	public final func containsTag(_ signature: String) -> Bool {
+	@inlinable final func containsTag(_ signature: String) -> Bool {
 		return ColorSyncProfileContainsTag(self, signature as NSString)
 	}
 	
 	/// Returns MD5 digest for the profile calculated as defined by
 	/// ICC specification, or `nil` in case of failure.
-	public final var md5: ColorSyncMD5? {
+	final var md5: ColorSyncMD5? {
 		let toRet = ColorSyncProfileGetMD5(self)
 		var theMD5 = toRet
 		return withUnsafePointer(to: &theMD5.digest) { (TheT) -> ColorSyncMD5? in
@@ -48,17 +48,17 @@ extension ColorSyncProfile {
 	}
 	
 	/// The URL of the profile, or `nil` on error.
-	public final var url: Foundation.URL? {
+	final var url: Foundation.URL? {
 		return ColorSyncProfileGetURL(self, nil)?.takeUnretainedValue() as URL?
 	}
 	
 	/// `Data` containing the header data in host endianess.
-	public var header: Data? {
+	@inlinable var header: Data? {
 		return ColorSyncProfileCopyHeader(self)?.takeRetainedValue() as Data?
 	}
 	
 	/// Estimates the gamma of the profile.
-	public final func estimateGamma() throws -> Float {
+	final func estimateGamma() throws -> Float {
 		var errVal: Unmanaged<CFError>?
 		let aRet = ColorSyncProfileEstimateGamma(self, &errVal)
 		
@@ -72,7 +72,7 @@ extension ColorSyncProfile {
 	}
 
 	/// Return the flattened data.
-	public final func rawData() throws -> Data {
+	final func rawData() throws -> Data {
 		var errVal: Unmanaged<CFError>?
 		guard let aDat = ColorSyncProfileCopyData(self, &errVal)?.takeRetainedValue() else {
 			guard let errStuff = errVal?.takeRetainedValue() else {
@@ -86,13 +86,13 @@ extension ColorSyncProfile {
 	/// An utility function creating three tables of floats (redTable, greenTable, blueTable)
 	/// each of size `samplesPerChannel`, packed into contiguous memory contained in the `Data`
 	/// to be returned from the `vcgt` tag of the profile (if `vcgt` tag exists in the profile).
-	public final func displayTransferTablesFromVCGT(_ samplesPerChannel: inout Int) -> Data? {
+	@inlinable final func displayTransferTablesFromVCGT(_ samplesPerChannel: inout Int) -> Data? {
 		return ColorSyncProfileCreateDisplayTransferTablesFromVCGT(self, &samplesPerChannel)?.takeRetainedValue() as Data?
 	}
 	
 	/// A utility function converting `vcgt` tag (if `vcgt` tag exists in the profile and
 	/// conversion possible) to formula components used by `CGSetDisplayTransferByFormula`.
-	public final func displayTransferFormulaFromVCGT() -> (red: (min: Float, max: Float, gamma: Float), green: (min: Float, max: Float, gamma: Float), blue: (min: Float, max: Float, gamma: Float))? {
+	@inlinable final func displayTransferFormulaFromVCGT() -> (red: (min: Float, max: Float, gamma: Float), green: (min: Float, max: Float, gamma: Float), blue: (min: Float, max: Float, gamma: Float))? {
 		typealias Component = (min: Float, max: Float, gamma: Float)
 		var red = Component(0, 0, 0)
 		var green = Component(0, 0, 0)
@@ -105,7 +105,7 @@ extension ColorSyncProfile {
 	}
 }
 
-extension ColorSyncMutableProfile {
+public extension ColorSyncMutableProfile {
 	/*
 	/// `Data` containing the header data in host endianess
 	override public var header: Data? {
@@ -121,13 +121,21 @@ extension ColorSyncMutableProfile {
 		}
 	}*/
 	
-	public func setHeaderData(_ aHeader: Data) {
+	@inlinable func setHeaderData(_ aHeader: Data) {
 		ColorSyncProfileSetHeader(self, aHeader as NSData)
 	}
 	
 	/// Removes a tag named `named`.
-	public func removeTag(_ named: String) {
+	@inlinable func removeTag(_ named: String) {
 		ColorSyncProfileRemoveTag(self, named as NSString)
+	}
+	
+	func setTag(_ named: String, to newValue: Data?) {
+		if let data = newValue {
+			ColorSyncProfileSetTag(self, named as NSString, data as NSData)
+		} else {
+			removeTag(named)
+		}
 	}
 	
 	/*

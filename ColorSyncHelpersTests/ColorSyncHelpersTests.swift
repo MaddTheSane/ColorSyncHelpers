@@ -195,6 +195,9 @@ class ColorSyncHelpersTests: XCTestCase {
 		do {
 			let profile = try CSProfile(data: data)
 			print(profile)
+		} catch let error as CSErrors {
+			print("CSError \(error) caught. We really shouldn't be catching those…")
+			return;
 		} catch {
 			print("\(error)")
 			XCTAssert(true, "CSProfile failed, \(error)")
@@ -209,6 +212,8 @@ class ColorSyncHelpersTests: XCTestCase {
 		do {
 			let profile = try CSProfile(data: data)
 			print(profile)
+		} catch let error as CSErrors {
+			XCTFail("CSError \(error) caught. We really shouldn't be catching those…")
 		} catch {
 			XCTFail("CSProfile failed, \(error)")
 		}
@@ -246,6 +251,8 @@ class ColorSyncHelpersTests: XCTestCase {
 			print(mutProfile.profile)
 			testCopyrightTag(profile: mutProfile, expected: false)
 			XCTAssertNil(mutProfile[copyrightTag])
+		} catch let error as CSErrors {
+			XCTFail("CSError \(error) caught. We really shouldn't be catching those…")
 		} catch {
 			XCTFail("CSProfile failed, \(error)")
 		}
@@ -264,6 +271,8 @@ class ColorSyncHelpersTests: XCTestCase {
 			let datTest = try aMut2.rawData()
 			print(aMut2.profile)
 			_ = datTest
+		} catch let error as CSErrors {
+			XCTFail("CSError \(error) caught. We really shouldn't be catching those…")
 		} catch {
 			XCTFail("CSMutableProfile failed, \(error)")
 		}
@@ -293,7 +302,7 @@ class ColorSyncHelpersTests: XCTestCase {
 		do {
 			try profile.uninstall()
 		} catch let error as CSErrors {
-			print("Got CSError:", error.rawValue)
+			print("CSError \(error) caught. We really shouldn't be catching those…")
 			//XCTFail("We got invalid error returned")
 			return
 		} catch {
@@ -315,6 +324,8 @@ class ColorSyncHelpersTests: XCTestCase {
 			})
 			
 			XCTAssertEqual(allCount, num)
+		} catch let error as CSErrors {
+			XCTFail("CSError \(error) caught. We really shouldn't be catching those…")
 		} catch {
 			XCTFail("Error `\(error)` encountered")
 		}
