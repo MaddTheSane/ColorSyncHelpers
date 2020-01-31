@@ -19,6 +19,8 @@ private func profileIterate(_ profileInfo: NSDictionary?, userInfo: UnsafeMutabl
 	
 	if let prof = CSProfile(iterateData: profileInfo) {
 		array.add(prof)
+	} else {
+		print("Failed adding the following dictionary: \(profileInfo)")
 	}
 	
 	return true

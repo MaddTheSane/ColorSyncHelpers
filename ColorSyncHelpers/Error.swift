@@ -13,8 +13,17 @@ import Foundation
 	case unwrappingError = -1
 }
 
-extension CSErrors: CustomStringConvertible {
+extension CSErrors: CustomStringConvertible, CustomDebugStringConvertible {
 	public var description: String {
+		switch self {
+		case .unwrappingError:
+			return "Unable to unwrap error returned by ColorSync function"
+		@unknown default:
+			return "Unknown error \(self.rawValue)"
+		}
+	}
+	
+	public var debugDescription: String {
 		switch self {
 		case .unwrappingError:
 			return "Unable to unwrap the error returned by ColorSync functions.\nThere's nothing you can do, other than create a ticket at https://feedbackassistant.apple.com Fixing this issue is impossible from an outside developer."

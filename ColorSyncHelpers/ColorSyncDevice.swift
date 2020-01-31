@@ -10,8 +10,7 @@ import Foundation
 import ApplicationServices
 
 
-public struct CSDevice {
-	private init() {}
+public enum CSDevice {
 	
 	public enum Scope {
 		case `any`
@@ -91,7 +90,7 @@ public struct CSDevice {
 		return ColorSyncDeviceCopyDeviceInfo(deviceClass as NSString, identifier).takeRetainedValue() as NSDictionary as! [String: Any]
 	}
 	
-	@available(*, renamed: "info(for:identifier:)")
+	@available(*, deprecated, renamed: "info(for:identifier:)")
 	public static func info(deviceClass dc: Profile.DeviceClass, identifier: UUID) -> Info {
 		return info(for: dc, identifier: identifier)!
 	}
@@ -101,7 +100,9 @@ public struct CSDevice {
 		
 		var devInfo = copyDeviceInfo(withClass: dc.rawValue, identifier: CFUUIDCreateFromString(kCFAllocatorDefault, identifier.uuidString as NSString))
 		let devClass: Profile.DeviceClass
-		let preDevClass = devInfo.removeValue(forKey: kColorSyncDeviceClass.takeUnretainedValue() as String) as! String
+		guard let preDevClass = devInfo.removeValue(forKey: kColorSyncDeviceClass.takeUnretainedValue() as String) as? String else {
+			return nil
+		}
 		switch preDevClass {
 		case kColorSyncCameraDeviceClass.takeUnretainedValue() as NSString as String:
 			devClass = .camera
@@ -122,7 +123,7 @@ public struct CSDevice {
 		guard let devIDC = devInfo.removeValue(forKey: kColorSyncDeviceID.takeUnretainedValue() as String) as CFTypeRef?,
 		let devDes = devInfo.removeValue(forKey: kColorSyncDeviceDescription.takeUnretainedValue() as String) as? String,
 		var factProf = devInfo.removeValue(forKey: kColorSyncDeviceDescription.takeUnretainedValue() as String) as? NSDictionary as? [String: Any],
-		let defaultID = factProf.removeValue(forKey: kColorSyncDeviceDefaultProfileID.takeUnretainedValue() as String) as? String else {
+		let defaultID = factProf.removeValue(forKey: kColorSyncDeviceDefaultProfileID.takeUnretainedValue() as String) as? String, CFGetTypeID(devIDC) == CFUUIDGetTypeID() else {
 			return nil
 		}
 		let devID = devIDC as! CFUUID
@@ -142,8 +143,8 @@ public struct CSDevice {
 			return tmpDict
 		}()
 		
-		let userScopeStr = devInfo.removeValue(forKey: kColorSyncDeviceUserScope.takeUnretainedValue() as String) as! NSString
-		let hostScopeStr = devInfo.removeValue(forKey: kColorSyncDeviceHostScope.takeUnretainedValue() as String) as! NSString
+		let userScopeStr = devInfo.removeValue(forKey: kColorSyncDeviceUserScope.takeUnretainedValue() as String) as? NSString
+		let hostScopeStr = devInfo.removeValue(forKey: kColorSyncDeviceHostScope.takeUnretainedValue() as String) as? NSString
 		let userScope: Scope
 		let hostScope: Scope
 		if userScopeStr == kCFPreferencesAnyUser {
@@ -178,10 +179,12 @@ public struct CSDevice {
 			return profs as NSArray as! Array<[String: Any]>
 		}()
 		
-		let devInfo = profsArr.map { (aDict) -> Profile? in
+		let devInfo = profsArr.compactMap { (aDict) -> Profile? in
 			var otherDict = aDict
 			let devClass: Profile.DeviceClass
-			let preDevClass = otherDict.removeValue(forKey: kColorSyncDeviceClass.takeUnretainedValue() as String) as! String
+			guard let preDevClass = otherDict.removeValue(forKey: kColorSyncDeviceClass.takeUnretainedValue() as String) as? String else {
+				return nil
+			}
 			switch preDevClass {
 			case kColorSyncCameraDeviceClass.takeUnretainedValue() as NSString as String:
 				devClass = .camera
@@ -206,11 +209,11 @@ public struct CSDevice {
 			let modeDes = otherDict.removeValue(forKey: kColorSyncDeviceModeDescription.takeUnretainedValue() as String) as? String,
 			let isFactory = otherDict.removeValue(forKey: kColorSyncDeviceProfileIsFactory.takeUnretainedValue() as String) as? Bool,
 			let isDefault = otherDict.removeValue(forKey: kColorSyncDeviceProfileIsDefault.takeUnretainedValue() as String) as? Bool,
-			let isCurrent = otherDict.removeValue(forKey: kColorSyncDeviceProfileIsCurrent.takeUnretainedValue() as String) as? Bool,
-			let userScopeStr = otherDict.removeValue(forKey: kColorSyncDeviceUserScope.takeUnretainedValue() as String) as? NSString,
-			let hostScopeStr = otherDict.removeValue(forKey: kColorSyncDeviceHostScope.takeUnretainedValue() as String) as? NSString else {
+			let isCurrent = otherDict.removeValue(forKey: kColorSyncDeviceProfileIsCurrent.takeUnretainedValue() as String) as? Bool else {
 				return nil
 			}
+			let userScopeStr = otherDict.removeValue(forKey: kColorSyncDeviceUserScope.takeUnretainedValue() as String) as? NSString
+			let hostScopeStr = otherDict.removeValue(forKey: kColorSyncDeviceHostScope.takeUnretainedValue() as String) as? NSString
 			let devID = devIDC as! CFUUID
 			
 			let userScope: Scope
@@ -232,6 +235,6 @@ public struct CSDevice {
 			return Profile(identifier: devNSID, deviceDescription: devDes, modeDescription: modeDes, profileID: profID, profileURL: profURL, extraEntries: otherDict, isFactory: isFactory, isDefault: isDefault, isCurrent: isCurrent, deviceClass: devClass, userScope: userScope, hostScope: hostScope)
 		}
 		
-		return devInfo.compactMap({ $0 })
+		return devInfo
 	}
 }

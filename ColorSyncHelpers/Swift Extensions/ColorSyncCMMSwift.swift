@@ -10,6 +10,11 @@ import Foundation
 import ApplicationServices
 
 public extension ColorSyncCMM {
+	/// The type identifier of all `ColorSyncCMM` instances.
+	@inlinable static var typeID: CFTypeID {
+		return ColorSyncCMMGetTypeID()
+	}
+
 	/// Will return `nil` for Apple's built-in CMM
 	@inlinable var bundle: Bundle? {
 		if let cfBundle = ColorSyncCMMGetBundle(self)?.takeUnretainedValue() {

@@ -10,6 +10,11 @@ import Foundation
 import ApplicationServices
 
 public extension ColorSyncProfile {
+	/// The type identifier of all `ColorSyncProfile` instances.
+	@inlinable static var typeID: CFTypeID {
+		return ColorSyncProfileGetTypeID()
+	}
+	
 	/// The data associated with the signature.
 	/// - parameter tag: signature of the tag to be retrieved
 	@inlinable subscript (tag: String) -> Data? {
