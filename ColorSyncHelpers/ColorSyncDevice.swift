@@ -212,8 +212,8 @@ public enum CSDevice {
 			let isCurrent = otherDict.removeValue(forKey: kColorSyncDeviceProfileIsCurrent.takeUnretainedValue() as String) as? Bool else {
 				return nil
 			}
-			let userScopeStr = otherDict.removeValue(forKey: kColorSyncDeviceUserScope.takeUnretainedValue() as String) as? NSString
-			let hostScopeStr = otherDict.removeValue(forKey: kColorSyncDeviceHostScope.takeUnretainedValue() as String) as? NSString
+			let userScopeStr = otherDict.removeValue(forKey: "ProfileUserScope") as? NSString
+			let hostScopeStr = otherDict.removeValue(forKey: "ProfileHostScope") as? NSString
 			let devID = devIDC as! CFUUID
 			
 			let userScope: Scope

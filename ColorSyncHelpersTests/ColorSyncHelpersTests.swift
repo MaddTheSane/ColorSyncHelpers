@@ -270,7 +270,7 @@ class ColorSyncHelpersTests: XCTestCase {
 			aMut2.removeTag(kColorSyncSigCopyrightTag.takeUnretainedValue() as String)
 			let datTest = try aMut2.rawData()
 			print(aMut2.profile)
-			_ = datTest
+			XCTAssertNotEqual(datTest, validICCNSData)
 		} catch let error as CSErrors {
 			XCTFail("CSError '\(error)' caught. We really shouldn't be catching those…")
 		} catch {

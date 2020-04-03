@@ -17,7 +17,7 @@ extension CSErrors: CustomStringConvertible, CustomDebugStringConvertible {
 	public var description: String {
 		switch self {
 		case .unwrappingError:
-			return "Unable to unwrap error returned by ColorSync function"
+			return "Unable to unwrap error returned by a ColorSync function failing"
 		@unknown default:
 			return "Unknown error \(self.rawValue)"
 		}
@@ -26,7 +26,7 @@ extension CSErrors: CustomStringConvertible, CustomDebugStringConvertible {
 	public var debugDescription: String {
 		switch self {
 		case .unwrappingError:
-			return "Unable to unwrap the error returned by ColorSync functions.\nThere's nothing you can do, other than create a ticket at https://feedbackassistant.apple.com Fixing this issue is impossible from an outside developer."
+			return "Unable to unwrap the error returned by ColorSync functions failing.\nThere's nothing you can do, other than create a ticket at https://feedbackassistant.apple.com Fixing this issue is impossible from an outside developer."
 		@unknown default:
 			return "Unknown error \(self.rawValue)"
 		}

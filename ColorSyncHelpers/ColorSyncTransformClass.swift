@@ -11,8 +11,10 @@ import ApplicationServices
 
 /// A class that references a ColorSync transform.
 ///
-/// Most keys are in "ApplicationServices/ColorSync/ColorSyncTransform".
-/// Note that you may have to unwrap them!
+/// Keys are in "ApplicationServices/ColorSync/ColorSyncTransform".
+///
+/// Note that you have to unwrap them, as Apple is being lazy
+/// about updating the APIs for Swift!
 public final class CSTransform: CustomDebugStringConvertible {
 	
 	/// The color depth of the data.
@@ -46,23 +48,23 @@ public final class CSTransform: CustomDebugStringConvertible {
 		/// The alpha info of the current layout.
 		public var alphaInfo: AlphaInfo {
 			get {
-				let newVal = self.intersection(.AlphaInfoMask)
+				let newVal = self.intersection(.alphaInfoMask)
 				let rawVal = newVal.rawValue
 				return AlphaInfo(rawValue: rawVal) ?? .none
 			}
 			set {
-				remove(.AlphaInfoMask)
+				remove(.alphaInfoMask)
 				insert(Layout(rawValue: newValue.rawValue))
 			}
 		}
 		
-		public static var AlphaInfoMask: Layout { return Layout(rawValue: 0x1f) }
+		public static var alphaInfoMask: Layout { return Layout(rawValue: 0x1f) }
 		
-		public static var ByteOrderMask: Layout { return Layout(rawValue: 0x7000) }
-		public static var ByteOrder16Little: Layout { return Layout(rawValue: 1 << 12) }
-		public static var ByteOrder32Little: Layout { return Layout(rawValue: 2 << 12) }
-		public static var ByteOrder16Big: Layout { return Layout(rawValue: 3 << 12) }
-		public static var ByteOrder32Big: Layout { return Layout(rawValue: 4 << 12) }
+		public static var byteOrderMask: Layout { return Layout(rawValue: 0x7000) }
+		public static var byteOrder16Little: Layout { return Layout(rawValue: 1 << 12) }
+		public static var byteOrder32Little: Layout { return Layout(rawValue: 2 << 12) }
+		public static var byteOrder16Big: Layout { return Layout(rawValue: 3 << 12) }
+		public static var byteOrder32Big: Layout { return Layout(rawValue: 4 << 12) }
 	}
 
 	let cstint: ColorSyncTransform
