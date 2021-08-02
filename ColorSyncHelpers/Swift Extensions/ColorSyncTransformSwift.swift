@@ -51,13 +51,13 @@ public extension ColorSyncTransform {
 		return transform(width: width, height: height, dst: destination.data, dstDepth: destination.depth, dstLayout: destination.layout, dstBytesPerRow: destination.bytesPerRow, src: source.data, srcDepth: source.depth, srcLayout: source.layout, srcBytesPerRow: source.bytesPerRow, options: options)
 	}
 	
-	/// gets the property of the specified key
+	/// Gets the property of the specified key.
 	/// - parameter key: `CFTypeRef` to be used as a key to identify the property
-	func getProperty(forKey key: AnyObject, options: [String: Any]? = nil) -> Any? {
+	func property(forKey key: AnyObject, options: [String: Any]? = nil) -> Any? {
 		return ColorSyncTransformCopyProperty(self, key, sanitize(options: options) as NSDictionary?)?.takeRetainedValue()
 	}
 	
-	/// Sets the property
+	/// Sets the property.
 	/// - parameter key: `CFTypeRef` to be used as a key to identify the property
 	/// - parameter property: `CFTypeRef` to be set as the property
 	@inlinable func setProperty(key: AnyObject, property: Any?) {
@@ -67,7 +67,7 @@ public extension ColorSyncTransform {
 	/// Gets and sets the properties.
 	subscript (key: AnyObject) -> Any? {
 		get {
-			return getProperty(forKey: key)
+			return property(forKey: key)
 		}
 		set {
 			ColorSyncTransformSetProperty(self, key, newValue as AnyObject?)
