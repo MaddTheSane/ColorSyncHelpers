@@ -40,7 +40,7 @@ public final class CSCMM: CustomStringConvertible, CustomDebugStringConvertible 
 		
 		ColorSyncIterateInstalledCMMs(cmmIterator, UnsafeMutableRawPointer(Unmanaged.passUnretained(cmms).toOpaque()))
 		
-		return cmms as NSArray as! [CSCMM]
+		return cmms as! [CSCMM]
 	}
 	
 	fileprivate init(cmm: ColorSyncCMM) {

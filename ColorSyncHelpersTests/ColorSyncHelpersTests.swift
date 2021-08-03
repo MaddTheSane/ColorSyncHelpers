@@ -126,14 +126,14 @@ class ColorSyncHelpersTests: XCTestCase {
 				var des = profile.description
 				print("\(des):")
 				do {
-				let tmpSigs = profile.tagSignatures
-				des = tmpSigs.description
-				print("\tTags: " + des)
+					let tmpSigs = profile.tagSignatures
+					des = tmpSigs.description
+					print("\tTags: " + des)
 				}
 				do {
-				let dat = profile.header
-				des = dat?.description ?? nilStr
-				print("\tHeader: " + des)
+					let dat = profile.header
+					des = dat?.description ?? nilStr
+					print("\tHeader: " + des)
 				}
 				do {
 					let profDat = try profile.rawData()
@@ -144,22 +144,22 @@ class ColorSyncHelpersTests: XCTestCase {
 				}
 				print("\tRaw Profile data: " + des)
 				do {
-				let gamma = try? profile.estimateGamma()
-				des = gamma?.description ?? nilStr
-				print("\tGamma: \(des)")
+					let gamma = try? profile.estimateGamma()
+					des = gamma?.description ?? nilStr
+					print("\tGamma: \(des)")
 				}
 				do {
-				let url = profile.url
-				des = url?.path ?? nilStr
-				print("\tURL: \(des)")
+					let url = profile.url
+					des = url?.path ?? nilStr
+					print("\tURL: \(des)")
 				}
 				do {
-				if let md5 = profile.md5 {
-					des = "\(md5.digest)"
-				} else {
-					des = nilStr
-				}
-				print("\tMD5: \(des)")
+					if let md5 = profile.md5 {
+						des = "\(md5.digest)"
+					} else {
+						des = nilStr
+					}
+					print("\tMD5: \(des)")
 				}
 				//print("\ttags:")
 				//for tag in tmpSigs {
