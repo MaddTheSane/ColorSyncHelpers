@@ -12,17 +12,73 @@ import ApplicationServices
 
 public enum CSDevice {
 	
-	public enum Scope {
+	public enum Scope: RawRepresentable, CustomStringConvertible {
 		case `any`
 		case current
+		
+		public init?(rawValue: CFString) {
+			switch rawValue {
+			case kCFPreferencesCurrentUser:
+				self = .current
+			case kCFPreferencesAnyUser:
+				self = .any
+			default:
+				return nil
+			}
+		}
+		
+		public var rawValue: CFString {
+			switch self {
+			case .any:
+				return kCFPreferencesAnyUser
+			case .current:
+				return kCFPreferencesCurrentUser
+			}
+		}
+		
+		public var description: String {
+			return rawValue as String
+		}
 	}
 	
 	public struct Profile: CustomStringConvertible, CustomDebugStringConvertible {
-		public enum DeviceClass: String {
-			case camera = "cmra"
-			case display = "mntr"
-			case printer = "prtr"
-			case scanner = "scnr"
+		public enum DeviceClass: RawRepresentable, CustomStringConvertible {
+			case camera
+			case display
+			case printer
+			case scanner
+			
+			public init?(rawValue: CFString) {
+				switch rawValue {
+				case kColorSyncCameraDeviceClass.takeUnretainedValue():
+					self = .camera
+				case kColorSyncDisplayDeviceClass.takeUnretainedValue():
+					self = .display
+				case kColorSyncPrinterDeviceClass.takeUnretainedValue():
+					self = .printer
+				case kColorSyncScannerDeviceClass.takeUnretainedValue():
+					self = .scanner
+				default:
+					return nil
+				}
+			}
+			
+			public var rawValue: CFString {
+				switch self {
+				case .camera:
+					return kColorSyncCameraDeviceClass.takeUnretainedValue()
+				case .display:
+					return kColorSyncDisplayDeviceClass.takeUnretainedValue()
+				case .printer:
+					return kColorSyncPrinterDeviceClass.takeUnretainedValue()
+				case .scanner:
+					return kColorSyncScannerDeviceClass.takeUnretainedValue()
+				}
+			}
+			
+			public var description: String {
+				return rawValue as String
+			}
 		}
 		public var identifier: UUID
 		public var deviceDescription: String
@@ -86,8 +142,8 @@ public enum CSDevice {
 	///         kColorSyncDeviceUserScope              {kCFPreferencesAnyUser or kCFPreferencesCurrentUser}
 	///         kColorSyncDeviceHostScope              {kCFPreferencesAnyHost or kCFPreferencesCurrentHost}
 	///     >>
-	private static func copyDeviceInfo(withClass deviceClass: String, identifier: CFUUID) -> [String: Any] {
-		return ColorSyncDeviceCopyDeviceInfo(deviceClass as NSString, identifier).takeRetainedValue() as NSDictionary as! [String: Any]
+	private static func copyDeviceInfo(withClass deviceClass: CFString, identifier: CFUUID) -> [String: Any] {
+		return ColorSyncDeviceCopyDeviceInfo(deviceClass, identifier).takeRetainedValue() as NSDictionary as! [String: Any]
 	}
 	
 	@available(*, deprecated, renamed: "info(for:identifier:)")
@@ -99,24 +155,10 @@ public enum CSDevice {
 		//Info
 		
 		var devInfo = copyDeviceInfo(withClass: dc.rawValue, identifier: CFUUIDCreateFromString(kCFAllocatorDefault, identifier.uuidString as NSString))
-		let devClass: Profile.DeviceClass
-		guard let preDevClass = devInfo.removeValue(forKey: kColorSyncDeviceClass.takeUnretainedValue() as String) as? String else {
+		guard let preDevClass = devInfo.removeValue(forKey: kColorSyncDeviceClass.takeUnretainedValue() as String) as? String as CFString? else {
 			return nil
 		}
-		switch preDevClass {
-		case kColorSyncCameraDeviceClass.takeUnretainedValue() as NSString as String:
-			devClass = .camera
-			
-		case kColorSyncDisplayDeviceClass.takeUnretainedValue() as NSString as String:
-			devClass = .display
-			
-		case kColorSyncPrinterDeviceClass.takeUnretainedValue() as NSString as String:
-			devClass = .printer
-			
-		case kColorSyncScannerDeviceClass.takeUnretainedValue() as NSString as String:
-			devClass = .scanner
-			
-		default:
+		guard let devClass = Profile.DeviceClass(rawValue: preDevClass) else {
 			print("Unknown device class \(preDevClass)")
 			return nil
 		}
@@ -147,14 +189,13 @@ public enum CSDevice {
 		let hostScopeStr = devInfo.removeValue(forKey: kColorSyncDeviceHostScope.takeUnretainedValue() as String) as? NSString
 		let userScope: Scope
 		let hostScope: Scope
-		if userScopeStr == kCFPreferencesAnyUser {
-			userScope = .any
+		if let userScopeStr = userScopeStr {
+			userScope = Scope(rawValue: userScopeStr) ?? .current
 		} else {
 			userScope = .current
 		}
-
-		if hostScopeStr == kCFPreferencesAnyHost {
-			hostScope = .any
+		if let userScopeStr = hostScopeStr {
+			hostScope = Scope(rawValue: userScopeStr) ?? .current
 		} else {
 			hostScope = .current
 		}
@@ -176,29 +217,15 @@ public enum CSDevice {
 				return true
 				}, UnsafeMutableRawPointer(Unmanaged.passUnretained(profs).toOpaque()))
 			
-			return profs as NSArray as! Array<[String: Any]>
+			return profs as! Array<[String: Any]>
 		}()
 		
 		let devInfo = profsArr.compactMap { (aDict) -> Profile? in
 			var otherDict = aDict
-			let devClass: Profile.DeviceClass
-			guard let preDevClass = otherDict.removeValue(forKey: kColorSyncDeviceClass.takeUnretainedValue() as String) as? String else {
+			guard let preDevClass = otherDict.removeValue(forKey: kColorSyncDeviceClass.takeUnretainedValue() as String) as? String as CFString? else {
 				return nil
 			}
-			switch preDevClass {
-			case kColorSyncCameraDeviceClass.takeUnretainedValue() as NSString as String:
-				devClass = .camera
-				
-			case kColorSyncDisplayDeviceClass.takeUnretainedValue() as NSString as String:
-				devClass = .display
-				
-			case kColorSyncPrinterDeviceClass.takeUnretainedValue() as NSString as String:
-				devClass = .printer
-				
-			case kColorSyncScannerDeviceClass.takeUnretainedValue() as NSString as String:
-				devClass = .scanner
-				
-			default:
+			guard let devClass = Profile.DeviceClass(rawValue: preDevClass) else {
 				return nil
 			}
 			guard let devIDC = otherDict.removeValue(forKey: kColorSyncDeviceID.takeUnretainedValue() as String) as CFTypeRef?,
@@ -218,14 +245,14 @@ public enum CSDevice {
 			
 			let userScope: Scope
 			let hostScope: Scope
-			if userScopeStr == kCFPreferencesAnyUser {
-				userScope = .any
+			if let userScopeStr = userScopeStr {
+				userScope = Scope(rawValue: userScopeStr) ?? .current
 			} else {
 				userScope = .current
 			}
 			
-			if hostScopeStr == kCFPreferencesAnyHost {
-				hostScope = .any
+			if let userScopeStr = hostScopeStr {
+				hostScope = Scope(rawValue: userScopeStr) ?? .current
 			} else {
 				hostScope = .current
 			}
