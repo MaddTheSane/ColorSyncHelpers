@@ -309,9 +309,9 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	/// as the directory path and file name will be created from the profile description tag, appended 
 	/// with the ".icc" extension.
 	/// - throws: on error.
-	public final func install(domain: String = kColorSyncProfileUserDomain.takeUnretainedValue() as String, subpath: String? = nil) throws {
+	public final func install(domain: CFString = kColorSyncProfileUserDomain.takeUnretainedValue(), subpath: String? = nil) throws {
 		var errVal: Unmanaged<CFError>?
-		if !ColorSyncProfileInstall(profile, domain as NSString, subpath as NSString?, &errVal) {
+		guard ColorSyncProfileInstall(profile, domain, subpath as NSString?, &errVal) else {
 			guard let errStuff = errVal?.takeRetainedValue() else {
 				throw CSErrors.unwrappingError
 			}
@@ -325,7 +325,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	/// `kColorSyncProfileUserDomain`, including subfolders of those.
 	public final func uninstall() throws {
 		var errVal: Unmanaged<CFError>?
-		if !ColorSyncProfileUninstall(profile, &errVal) {
+		guard ColorSyncProfileUninstall(profile, &errVal) else {
 			guard let errStuff = errVal?.takeRetainedValue() else {
 				throw CSErrors.unwrappingError
 			}
@@ -340,7 +340,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 		var red = Component(0, 0, 0)
 		var green = Component(0, 0, 0)
 		var blue = Component(0, 0, 0)
-		if !ColorSyncProfileGetDisplayTransferFormulaFromVCGT(profile, &red.min, &red.max, &red.gamma, &green.min, &green.max, &green.gamma, &blue.min, &blue.max, &blue.gamma) {
+		guard ColorSyncProfileGetDisplayTransferFormulaFromVCGT(profile, &red.min, &red.max, &red.gamma, &green.min, &green.max, &green.gamma, &blue.min, &blue.max, &blue.gamma) else {
 			return nil
 		}
 		

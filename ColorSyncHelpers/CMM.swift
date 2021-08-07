@@ -38,7 +38,16 @@ public final class CSCMM: CustomStringConvertible, CustomDebugStringConvertible 
 	public static var installedCMMs: [CSCMM] {
 		let cmms = NSMutableArray()
 		
-		ColorSyncIterateInstalledCMMs(cmmIterator, UnsafeMutableRawPointer(Unmanaged.passUnretained(cmms).toOpaque()))
+		ColorSyncIterateInstalledCMMs({ cmm, userInfo in
+			guard let userInfo = userInfo, let cmm = cmm else {
+				return false
+			}
+			let array = Unmanaged<NSMutableArray>.fromOpaque(userInfo).takeUnretainedValue()
+			
+			array.add(CSCMM(cmm: cmm))
+			
+			return true
+		}, UnsafeMutableRawPointer(Unmanaged.passUnretained(cmms).toOpaque()))
 		
 		return cmms as! [CSCMM]
 	}

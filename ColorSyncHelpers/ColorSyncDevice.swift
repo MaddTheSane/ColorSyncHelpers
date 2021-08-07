@@ -222,7 +222,7 @@ public enum CSDevice {
 		
 		let devInfo = profsArr.compactMap { (aDict) -> Profile? in
 			var otherDict = aDict
-			guard let preDevClass = otherDict.removeValue(forKey: kColorSyncDeviceClass.takeUnretainedValue() as String) as? String as CFString? else {
+			guard let preDevClass = otherDict.removeValue(forKey: kColorSyncDeviceClass.takeUnretainedValue() as String) as? NSString else {
 				return nil
 			}
 			guard let devClass = Profile.DeviceClass(rawValue: preDevClass) else {
