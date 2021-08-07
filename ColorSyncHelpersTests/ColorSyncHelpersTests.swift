@@ -285,9 +285,7 @@ class ColorSyncHelpersTests: XCTestCase {
 	}
 	
 	func testInvalidRemove() {
-		let data = validICCNSData
-		
-		guard let profile = try? CSProfile(data: data) else {
+		guard let profile = try? CSProfile(data: validICCNSData) else {
 			XCTFail("CSProfile failed")
 			return
 		}
