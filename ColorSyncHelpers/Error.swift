@@ -8,12 +8,12 @@
 
 import Foundation
 
-@objc public enum CSErrors: Int, Error {
+@objc public enum CSError: Int, Error {
 	/// Could not unwrap the error that was returned from a failed function call.
 	case unwrappingError = -1
 }
 
-extension CSErrors: CustomStringConvertible, CustomDebugStringConvertible {
+extension CSError: CustomStringConvertible, CustomDebugStringConvertible {
 	public var description: String {
 		switch self {
 		case .unwrappingError:

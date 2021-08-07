@@ -57,6 +57,18 @@ public extension ColorSyncProfile {
 		return ColorSyncProfileGetURL(self, nil)?.takeUnretainedValue() as URL?
 	}
 	
+	/// Returns the URL of the profile, or throws on error.
+	final func getURL() throws -> URL {
+		var errVal: Unmanaged<CFError>?
+		guard let theURL = ColorSyncProfileGetURL(self, &errVal)?.takeUnretainedValue() else {
+			guard let errStuff = errVal?.takeRetainedValue() else {
+				throw CSError.unwrappingError
+			}
+			throw errStuff
+		}
+		return theURL as URL
+	}
+	
 	/// `Data` containing the header data in host endianess.
 	@inlinable var header: Data? {
 		return ColorSyncProfileCopyHeader(self)?.takeRetainedValue() as Data?
@@ -69,7 +81,7 @@ public extension ColorSyncProfile {
 		
 		if aRet == 0.0 {
 			guard let errStuff = errVal?.takeRetainedValue() else {
-				throw CSErrors.unwrappingError
+				throw CSError.unwrappingError
 			}
 			throw errStuff
 		}
@@ -81,7 +93,7 @@ public extension ColorSyncProfile {
 		var errVal: Unmanaged<CFError>?
 		guard let aDat = ColorSyncProfileCopyData(self, &errVal)?.takeRetainedValue() else {
 			guard let errStuff = errVal?.takeRetainedValue() else {
-				throw CSErrors.unwrappingError
+				throw CSError.unwrappingError
 			}
 			throw errStuff
 		}

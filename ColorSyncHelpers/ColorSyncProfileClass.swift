@@ -8,23 +8,7 @@
 
 import Foundation
 import ApplicationServices
-
-/// Callback routine with a description of a profile that is
-/// called during an iteration through the available profiles.
-private func profileIterate(_ profileInfo: NSDictionary?, userInfo: UnsafeMutableRawPointer?) -> Bool {
-	guard let profileInfo = profileInfo as? [String: Any], let userInfo = userInfo else {
-		return false
-	}
-	let array = Unmanaged<NSMutableArray>.fromOpaque(userInfo).takeUnretainedValue()
-	
-	if let prof = CSProfile(iterateData: profileInfo) {
-		array.add(prof)
-	} else {
-		print("Failed adding the following dictionary: \(profileInfo)")
-	}
-	
-	return true
-}
+import ColorSync
 
 func sanitize(options: [String: Any]?) -> [String: Any]? {
 	guard var options = options else {
@@ -62,7 +46,23 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	public static func allProfiles() throws -> [CSProfile] {
 		let profs = NSMutableArray()
 
-		try iterateInstalledProfiles(using: profileIterate, userInfo: Unmanaged.passUnretained(profs).toOpaque())
+		try iterateInstalledProfiles(using: { profileInfo, userInfo in
+			// Callback routine with a description of a profile that is
+			// called during an iteration through the available profiles.
+			guard let profileInfo = profileInfo as? [String: Any], let userInfo = userInfo else {
+				return false
+			}
+			let array = Unmanaged<NSMutableArray>.fromOpaque(userInfo).takeUnretainedValue()
+			
+			if let prof = CSProfile(iterateData: profileInfo) {
+				array.add(prof)
+			} else {
+				print("Failed adding the following dictionary: \(profileInfo)")
+			}
+			
+			return true
+
+		}, userInfo: Unmanaged.passUnretained(profs).toOpaque())
 		
 		return profs as NSArray as! [CSProfile]
 	}
@@ -111,7 +111,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 			self.init(internalPtr: csVal)
 		} else {
 			guard let errStuff = errVal?.takeRetainedValue() else {
-				throw CSErrors.unwrappingError
+				throw CSError.unwrappingError
 			}
 			throw errStuff
 		}
@@ -124,7 +124,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 			self.init(internalPtr: csVal)
 		} else {
 			guard let errStuff = errVal?.takeRetainedValue() else {
-				throw CSErrors.unwrappingError
+				throw CSError.unwrappingError
 			}
 			throw errStuff
 		}
@@ -257,7 +257,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 		
 		if aRet == 0.0 {
 			guard let errStuff = errVal?.takeRetainedValue() else {
-				throw CSErrors.unwrappingError
+				throw CSError.unwrappingError
 			}
 			throw errStuff
 		}
@@ -282,7 +282,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 		var errVal: Unmanaged<CFError>?
 		guard let aDat = ColorSyncProfileCopyData(profile, &errVal)?.takeRetainedValue() else {
 			guard let errStuff = errVal?.takeRetainedValue() else {
-				throw CSErrors.unwrappingError
+				throw CSError.unwrappingError
 			}
 			throw errStuff
 		}
@@ -313,7 +313,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 		var errVal: Unmanaged<CFError>?
 		guard ColorSyncProfileInstall(profile, domain, subpath as NSString?, &errVal) else {
 			guard let errStuff = errVal?.takeRetainedValue() else {
-				throw CSErrors.unwrappingError
+				throw CSError.unwrappingError
 			}
 			throw errStuff
 		}
@@ -327,7 +327,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 		var errVal: Unmanaged<CFError>?
 		guard ColorSyncProfileUninstall(profile, &errVal) else {
 			guard let errStuff = errVal?.takeRetainedValue() else {
-				throw CSErrors.unwrappingError
+				throw CSError.unwrappingError
 			}
 			throw errStuff
 		}
@@ -348,8 +348,8 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 	}
 	
 	/// Verify the current profile.
-	/// - throws: if the profile cannot be used.
-	/// - returns: warnings indicating problems due to lack of
+	/// - throws: If the profile cannot be used.
+	/// - returns: Warnings indicating problems due to lack of
 	/// conformance with the ICC specification, but not preventing
 	/// use of the profile.<br>
 	/// Will be `nil` if there is no problems.
@@ -360,7 +360,7 @@ public class CSProfile: CustomStringConvertible, CustomDebugStringConvertible {
 		
 		guard usable else {
 			guard let errors = errors?.takeRetainedValue() else {
-				throw CSErrors.unwrappingError
+				throw CSError.unwrappingError
 			}
 			throw errors
 		}
@@ -376,7 +376,7 @@ public func estimateGamma(displayID: Int32) throws -> Float {
 	
 	guard aRet != 0.0 else {
 		guard let errStuff = errVal?.takeRetainedValue() else {
-			throw CSErrors.unwrappingError
+			throw CSError.unwrappingError
 		}
 		throw errStuff
 	}

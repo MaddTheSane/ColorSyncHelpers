@@ -190,12 +190,10 @@ class ColorSyncHelpersTests: XCTestCase {
     }
 	
 	func testInvalidData() {
-		let data = invalidICCNSData
-
 		do {
-			let profile = try CSProfile(data: data)
+			let profile = try CSProfile(data: invalidICCNSData)
 			print(profile)
-		} catch let error as CSErrors {
+		} catch let error as CSError {
 			print("CSError '\(error)' caught. We really shouldn't be catching those…")
 			return
 		} catch {
@@ -207,12 +205,10 @@ class ColorSyncHelpersTests: XCTestCase {
 	}
 	
 	func testValidData() {
-		let data = validICCNSData
-		
 		do {
-			let profile = try CSProfile(data: data)
+			let profile = try CSProfile(data: validICCNSData)
 			print(profile)
-		} catch let error as CSErrors {
+		} catch let error as CSError {
 			XCTFail("CSError '\(error)' caught. We really shouldn't be catching those…")
 		} catch {
 			XCTFail("CSProfile failed, \(error)")
@@ -220,7 +216,6 @@ class ColorSyncHelpersTests: XCTestCase {
 	}
 	
 	func testMakingItMutable() {
-		let data = validICCNSData
 		let copyrightTag = kColorSyncSigCopyrightTag.takeUnretainedValue() as String
 		
 		func testCopyrightTag(profile: CSProfile, expected: Bool = true) {
@@ -236,7 +231,7 @@ class ColorSyncHelpersTests: XCTestCase {
 		}
 		
 		do {
-			let profile = try CSProfile(data: data)
+			let profile = try CSProfile(data: validICCNSData)
 			print(profile.profile)
 			testCopyrightTag(profile: profile)
 			
@@ -251,7 +246,7 @@ class ColorSyncHelpersTests: XCTestCase {
 			print(mutProfile.profile)
 			testCopyrightTag(profile: mutProfile, expected: false)
 			XCTAssertNil(mutProfile[copyrightTag])
-		} catch let error as CSErrors {
+		} catch let error as CSError {
 			XCTFail("CSError '\(error)' caught. We really shouldn't be catching those…")
 		} catch {
 			XCTFail("CSProfile failed, \(error)")
@@ -259,19 +254,17 @@ class ColorSyncHelpersTests: XCTestCase {
 	}
 	
 	func testRawMutable() {
-		let data = validICCNSData
-
 		let aMut = CSMutableProfile()
 		print(aMut.profile)
 		
 		do {
-			let aMut2 = try CSMutableProfile(data: data)
+			let aMut2 = try CSMutableProfile(data: validICCNSData)
 			print(aMut2.profile)
 			aMut2.removeTag(kColorSyncSigCopyrightTag.takeUnretainedValue() as String)
 			let datTest = try aMut2.rawData()
 			print(aMut2.profile)
 			XCTAssertNotEqual(datTest, validICCNSData)
-		} catch let error as CSErrors {
+		} catch let error as CSError {
 			XCTFail("CSError '\(error)' caught. We really shouldn't be catching those…")
 		} catch {
 			XCTFail("CSMutableProfile failed, \(error)")
@@ -301,7 +294,7 @@ class ColorSyncHelpersTests: XCTestCase {
 
 		do {
 			try profile.uninstall()
-		} catch let error as CSErrors {
+		} catch let error as CSError {
 			print("CSError '\(error)' caught. We really shouldn't be catching those…")
 			//XCTFail("We got invalid error returned")
 			return
@@ -325,7 +318,7 @@ class ColorSyncHelpersTests: XCTestCase {
 			})
 			
 			XCTAssertEqual(allCount, num)
-		} catch let error as CSErrors {
+		} catch let error as CSError {
 			XCTFail("CSError '\(error)' caught. We really shouldn't be catching those…")
 		} catch {
 			XCTFail("Error `\(error)` encountered")

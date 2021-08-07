@@ -12,7 +12,7 @@ import ApplicationServices
 
 public enum CSDevice {
 	
-	public enum Scope: RawRepresentable, CustomStringConvertible {
+	public enum UserScope: RawRepresentable, CustomStringConvertible {
 		case `any`
 		case current
 		
@@ -21,6 +21,35 @@ public enum CSDevice {
 			case kCFPreferencesCurrentUser:
 				self = .current
 			case kCFPreferencesAnyUser:
+				self = .any
+			default:
+				return nil
+			}
+		}
+		
+		public var rawValue: CFString {
+			switch self {
+			case .any:
+				return kCFPreferencesAnyUser
+			case .current:
+				return kCFPreferencesCurrentUser
+			}
+		}
+		
+		public var description: String {
+			return rawValue as String
+		}
+	}
+	
+	public enum HostScope: RawRepresentable, CustomStringConvertible {
+		case `any`
+		case current
+		
+		public init?(rawValue: CFString) {
+			switch rawValue {
+			case kCFPreferencesCurrentHost:
+				self = .current
+			case kCFPreferencesAnyHost:
 				self = .any
 			default:
 				return nil
@@ -90,8 +119,8 @@ public enum CSDevice {
 		public var isDefault: Bool
 		public var isCurrent: Bool
 		public var deviceClass: DeviceClass
-		public var userScope: Scope
-		public var hostScope: Scope
+		public var userScope: UserScope
+		public var hostScope: HostScope
 
 		public var description: String {
 			return "\(deviceDescription), \(modeDescription) (\(deviceClass))"
@@ -117,8 +146,8 @@ public enum CSDevice {
 		public var deviceDescription: String
 		public var factoryProfiles: FactoryProfiles
 		public var customProfiles: [String: URL?]
-		public var userScope: Scope
-		public var hostScope: Scope
+		public var userScope: UserScope
+		public var hostScope: HostScope
 	}
 
 	/// Returns a dictionary with the following keys and values resolved for the current host and current user.
@@ -187,15 +216,15 @@ public enum CSDevice {
 		
 		let userScopeStr = devInfo.removeValue(forKey: kColorSyncDeviceUserScope.takeUnretainedValue() as String) as? NSString
 		let hostScopeStr = devInfo.removeValue(forKey: kColorSyncDeviceHostScope.takeUnretainedValue() as String) as? NSString
-		let userScope: Scope
-		let hostScope: Scope
+		let userScope: UserScope
+		let hostScope: HostScope
 		if let userScopeStr = userScopeStr {
-			userScope = Scope(rawValue: userScopeStr) ?? .current
+			userScope = UserScope(rawValue: userScopeStr) ?? .current
 		} else {
 			userScope = .current
 		}
 		if let userScopeStr = hostScopeStr {
-			hostScope = Scope(rawValue: userScopeStr) ?? .current
+			hostScope = HostScope(rawValue: userScopeStr) ?? .current
 		} else {
 			hostScope = .current
 		}
@@ -239,20 +268,20 @@ public enum CSDevice {
 			let isCurrent = otherDict.removeValue(forKey: kColorSyncDeviceProfileIsCurrent.takeUnretainedValue() as String) as? Bool else {
 				return nil
 			}
-			let userScopeStr = otherDict.removeValue(forKey: "ProfileUserScope") as? NSString
-			let hostScopeStr = otherDict.removeValue(forKey: "ProfileHostScope") as? NSString
+			let userScopeStr = otherDict.removeValue(forKey: kColorSyncProfileUserScope.takeUnretainedValue() as String) as? NSString
+			let hostScopeStr = otherDict.removeValue(forKey: kColorSyncProfileHostScope.takeUnretainedValue() as String) as? NSString
 			let devID = devIDC as! CFUUID
 			
-			let userScope: Scope
-			let hostScope: Scope
+			let userScope: UserScope
+			let hostScope: HostScope
 			if let userScopeStr = userScopeStr {
-				userScope = Scope(rawValue: userScopeStr) ?? .current
+				userScope = UserScope(rawValue: userScopeStr) ?? .current
 			} else {
 				userScope = .current
 			}
 			
 			if let userScopeStr = hostScopeStr {
-				hostScope = Scope(rawValue: userScopeStr) ?? .current
+				hostScope = HostScope(rawValue: userScopeStr) ?? .current
 			} else {
 				hostScope = .current
 			}

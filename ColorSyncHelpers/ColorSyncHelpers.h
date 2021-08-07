@@ -7,7 +7,7 @@
 //
 
 #import <Cocoa/Cocoa.h>
-#include <ColorSync/ColorSync.h>
+#include <ColorSync/ColorSyncBase.h>
 
 //! Project version number for ColorSyncHelpers.
 FOUNDATION_EXPORT double ColorSyncHelpersVersionNumber;
